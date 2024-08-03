@@ -1,0 +1,129 @@
+.container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  background-color: var(--base-color);
+  padding: 15px;
+  justify-content: space-between;
+}
+* {
+  transition: 0.2s ease-in-out;
+}
+.container .element {
+  border-radius: 15px;
+  margin: 0 10px;
+}
+
+.container .sideBar {
+  padding: 15px 0;
+  height: 100%;
+  width: 80px;
+  background-color: var(--card-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+}
+.container .sideBar .logo,
+.container .sideBar .option,
+.container .sideBar .settings {
+  height: 40px;
+  width: 40px;
+  background-color: white;
+  border-radius: 50%;
+  margin: 15px 0;
+}
+.container .editor {
+  width: calc(76% - 80px);
+  height: 100%;
+  background-color: var(--cardholder-color);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px;
+}
+.container .editor .codebox {
+  overflow: hidden;
+  border-radius: 10px;
+  height: 70%;
+  width: 100%;
+  background-color: var(--card-color);
+  border: 2px solid var(--border-color);
+  position: relative;
+}
+.container .editor .codebox .cardHeading .options {
+  display: flex;
+  align-items: center;
+}
+.container .editor .codebox .cardHeading .options .option {
+  margin-left: 20px;
+  border-radius: 10px;
+}
+.expand {
+  padding: 7px 10px;
+
+  background-color: var(--button2-color);
+}
+.container .editor .codebox .runButton {
+  padding: 15px 25px;
+  background-color: var(--button1-color);
+  color: white;
+  border-radius: 7px;
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+}
+.container .editor .output {
+  overflow: hidden;
+  border-radius: 10px;
+  width: 100%;
+  height: 28%;
+  background-color: var(--card-color);
+  border: 2px solid var(--border-color);
+}
+.container .editor .output .showOutput {
+  color: var(--span-primary-color);
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+}
+.container .gpt {
+  height: 100%;
+  overflow: hidden;
+  width: 40%;
+  background-color: var(--card-color);
+}
+.container .element .cardHeading {
+  width: 100%;
+  background-color: var(--card-heading-color);
+  padding: 15px 15px 15px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.container .toggleOutput {
+  padding: 7px 10px;
+  background-color: var(--button2-color);
+  border-radius: 10px;
+}
+.container .participants {
+  height: 100%;
+  width: 20%;
+  /* background-color: var(--cardholder-color); */
+}
+.container .participant {
+  height: 150px;
+  width: 100%;
+  border-radius: 15px;
+  background-color: var(--card-color);
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+  align-items: center;
+}
+.container .participant .logo {
+  height: 60px;
+  width: 60px;
+  background-color: white;
+  border-radius: 50px;
+}

@@ -1,0 +1,14 @@
+:root{
+ --base-color:#352F49;
+ --cardholder-color:#1A152C;
+ --card-color:#1B162D;
+ --primary-heading-color:#8965F6;
+ --border-color:#322f3b;
+ --button1-color:#8966F8;
+ --button2-color:#BF6AE3;
+ --span-primary-color:rgb(230, 230, 230);
+ --card-heading-color:#120D23;
+}
+span{
+ color:var(--span-primary-color);
+}
