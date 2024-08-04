@@ -8,8 +8,8 @@ import axios from 'axios'
 
 function editor() {
   const editorRef = useRef()
-  const codeboxRef = useRef() // Ref for the codebox
-  const outputRef = useRef() // Ref for the output
+  const codeboxRef = useRef() 
+  const outputRef = useRef() 
   const [value, setValue] = useState('')
   const [language, setLanguage] = useState('javascript')
   const [output, setOutput] = useState('Click run to see the result')
@@ -19,11 +19,11 @@ function editor() {
 
   const handleOutputToggle = () => {
     if (outputToggle) {
-      codeboxRef.current.style.height = '88%' // Use ref for codebox
-      outputRef.current.style.height = '10%' // Use ref for output
+      codeboxRef.current.style.height = '88%'
+      outputRef.current.style.height = '10%' 
     } else {
-      codeboxRef.current.style.height = '70%' // Use ref for codebox
-      outputRef.current.style.height = '28%' // Use ref for output
+      codeboxRef.current.style.height = '70%' 
+      outputRef.current.style.height = '28%' 
     }
     setOutputToggle(!outputToggle)
   }
@@ -111,7 +111,7 @@ function editor() {
         </div>
       ) : null}
       <div className='editor element'>
-        <div className='codebox' ref={codeboxRef}> {/* Attach ref here */}
+        <div className='codebox' ref={codeboxRef}> 
           <div className='cardHeading'>
             <span>Code Editor</span>
             <div className='options'>
