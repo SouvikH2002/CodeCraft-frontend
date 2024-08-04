@@ -131,7 +131,7 @@ function editor() {
                     : {}
                 }
               >
-                <span>expand</span>
+                <span>expand ➔</span>
               </div>
             </div>
           </div>
@@ -148,11 +148,11 @@ function editor() {
             Run code
           </button>
         </div>
-        <div className='output' ref={outputRef}> {/* Attach ref here */}
+        <div className='output' ref={outputRef}> 
           <div className='cardHeading'>
             <span>Output</span>
             <div className='button toggleOutput' onClick={handleOutputToggle}>
-              <span>down</span>
+              <span>down &#8595;</span>
             </div>
           </div>
           <div className='showOutput'></div>
