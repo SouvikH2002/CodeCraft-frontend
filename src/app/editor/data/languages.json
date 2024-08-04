@@ -1,0 +1,28 @@
+[
+  {
+    "language": "javascript",
+    "version": "18.15.0"
+  },
+  {
+    "language": "typescript",
+    "version": "5.0.3"
+  },
+  {
+    "language": "python",
+    "version": "3.10.0"
+  },
+  {
+    "language": "java",
+    "version": "15.0.2"
+  },
+  {
+    "language": "csharp",
+    "version": "6.12.0"
+  },
+  {
+    "language": "php",
+    "version": "8.2.3"
+  }
+]
+
+

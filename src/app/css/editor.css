@@ -100,6 +100,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
 }
 .container .toggleOutput {
   padding: 7px 10px;
@@ -126,4 +127,28 @@
   width: 60px;
   background-color: white;
   border-radius: 50px;
+}
+.languages .langOptions{
+  position: absolute;
+  z-index: 10;
+  background-color: white;
+  top: 68px;
+  border-radius: 7px;
+  overflow: hidden;
+  transform: rotateX(90deg);
+  transform-origin: top;
+  transition: 0.3s ease-in-out;
+}
+
+.languages .langOptions .langOption{
+  padding: 15px 20px;
+  width: 150px;
+}
+.languages .langOptions .langOption:hover{
+  background-color: rgb(215, 215, 215);
+}
+.languages:hover .langOptions,
+.languages .langOptions:hover {
+    transform: rotateX(0deg);
+
 }

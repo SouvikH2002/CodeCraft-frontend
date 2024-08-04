@@ -3,15 +3,21 @@ import { Participant } from './components/Participant'
 import '../css/editor.css'
 import '../css/colors.css'
 import Editor from '@monaco-editor/react'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import axios from 'axios'
+import { Languages } from './components/Languages'
 
 function editor() {
   const editorRef = useRef()
   const codeboxRef = useRef() 
   const outputRef = useRef() 
   const [value, setValue] = useState('')
-  const [language, setLanguage] = useState('javascript')
+  const [language, setLanguage] = useState({
+    language: 'javascript',
+    version: '18.15.0',
+    default:
+      '\nfunction greet(name) {\n\tconsole.log("Hello, " + name + "!");\n}\n\ngreet("Alex");\n',
+  })
   const [output, setOutput] = useState('Click run to see the result')
   const [outputToggle, setOutputToggle] = useState(true)
   const [codeboxToggle, setCodeboxToggle] = useState(true)
@@ -58,15 +64,12 @@ function editor() {
     editor.focus()
   }
 
-  const onSelect = (language) => {
-    setLanguage(language)
-    setValue(CODE_SNIPPETS[language])
-  }
+
 
   const handleCompileRun = async () => {
     const obj = {
-      language: 'java',
-      version: '15.0.2',
+      language: language.language,
+      version: language.version,
       files: [
         {
           name: 'my_cool_code.js',
@@ -80,6 +83,7 @@ function editor() {
       compile_memory_limit: -1,
       run_memory_limit: -1,
     }
+    console.log(obj)
     const resp = await axios.post('https://emkc.org/api/v2/piston/execute', obj)
     console.log('checkintg')
     console.log(resp.data.run.stdout)
@@ -88,7 +92,9 @@ function editor() {
     document.querySelector('.showOutput').innerHTML = outputCode
     setOutput(outputCode)
   }
-
+  useEffect(()=>{
+    setValue(language.default)
+  },[language])
   return (
     <div className='container'>
       <div className='sideBar element'>
@@ -111,12 +117,26 @@ function editor() {
         </div>
       ) : null}
       <div className='editor element'>
-        <div className='codebox' ref={codeboxRef}> 
+        <div className='codebox' ref={codeboxRef}>
           <div className='cardHeading'>
-            <span>Code Editor</span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ marginRight: '15px' }}>Code Editor</span>
+              <div>
+                <span style={{ fontSize: '12px' }}>{language.language}</span>
+                <span
+                  style={{
+                    fontSize: '12px',
+                    marginLeft: '15px',
+                    color: '#ffffff70',
+                  }}
+                >
+                  {`v ${language.version}`}
+                </span>
+              </div>
+            </div>
             <div className='options'>
-              <div className='button option'>
-                <span>languages</span>
+              <div className='button option languages'>
+                <Languages setLanguage={setLanguage}></Languages>
               </div>
               <div
                 className='button option expand'
@@ -138,8 +158,7 @@ function editor() {
           <Editor
             height='90vh'
             theme='vs-dark'
-            defaultLanguage='java'
-            defaultValue='// some comment'
+            language={language.language}
             onMount={onMount}
             value={value}
             onChange={(value) => setValue(value)}
@@ -148,7 +167,7 @@ function editor() {
             Run code
           </button>
         </div>
-        <div className='output' ref={outputRef}> 
+        <div className='output' ref={outputRef}>
           <div className='cardHeading'>
             <span>Output</span>
             <div className='button toggleOutput' onClick={handleOutputToggle}>
