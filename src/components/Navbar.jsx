@@ -18,11 +18,11 @@ const Navbar = () => {
             <li>Dashboard</li>
           </Link>
         </div>
-        <div className="flex items-center">
+        {/* <div className="flex items-center">
           <Link href="/editor">
             <li>Editor</li>
           </Link>
-        </div>
+        </div> */}
         <div className="flex gap-6 items-center">
           {!userId ? (
             <>
