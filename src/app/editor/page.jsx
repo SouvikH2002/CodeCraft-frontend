@@ -3,27 +3,31 @@ import { Participant } from './components/Participant'
 import '../css/editor.css'
 import '../css/colors.css'
 import Editor from '@monaco-editor/react'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import axios from 'axios'
 
 function editor() {
   const editorRef = useRef()
+  const codeboxRef = useRef() // Ref for the codebox
+  const outputRef = useRef() // Ref for the output
   const [value, setValue] = useState('')
   const [language, setLanguage] = useState('javascript')
   const [output, setOutput] = useState('Click run to see the result')
   const [outputToggle, setOutputToggle] = useState(true)
   const [codeboxToggle, setCodeboxToggle] = useState(true)
   const [gptToggle, setGptToggle] = useState(false)
+
   const handleOutputToggle = () => {
     if (outputToggle) {
-      document.querySelector('.container .editor .codebox').style.height = '88%'
-      document.querySelector('.container .editor .output').style.height = '10%'
+      codeboxRef.current.style.height = '88%' // Use ref for codebox
+      outputRef.current.style.height = '10%' // Use ref for output
     } else {
-      document.querySelector('.container .editor .codebox').style.height = '70%'
-      document.querySelector('.container .editor .output').style.height = '28%'
+      codeboxRef.current.style.height = '70%' // Use ref for codebox
+      outputRef.current.style.height = '28%' // Use ref for output
     }
     setOutputToggle(!outputToggle)
   }
+
   const handleGptToggle = () => {
     if (!gptToggle) {
       document.querySelector('.container .editor').style.width =
@@ -35,6 +39,7 @@ function editor() {
     }
     setGptToggle(!gptToggle)
   }
+
   const handleCodeboxToggle = () => {
     if (codeboxToggle) {
       document.querySelector('.container .editor').style.width =
@@ -57,6 +62,7 @@ function editor() {
     setLanguage(language)
     setValue(CODE_SNIPPETS[language])
   }
+
   const handleCompileRun = async () => {
     const obj = {
       language: 'java',
@@ -82,6 +88,7 @@ function editor() {
     document.querySelector('.showOutput').innerHTML = outputCode
     setOutput(outputCode)
   }
+
   return (
     <div className='container'>
       <div className='sideBar element'>
@@ -97,18 +104,14 @@ function editor() {
         <div className='settings button'></div>
       </div>
       {gptToggle ? (
-        <>
-          <div className='gpt element'>
-            <div className='cardHeading'>
-              <span>ChatGPT</span>
-            </div>
+        <div className='gpt element'>
+          <div className='cardHeading'>
+            <span>ChatGPT</span>
           </div>
-        </>
-      ) : (
-        <></>
-      )}
+        </div>
+      ) : null}
       <div className='editor element'>
-        <div className='codebox'>
+        <div className='codebox' ref={codeboxRef}> {/* Attach ref here */}
           <div className='cardHeading'>
             <span>Code Editor</span>
             <div className='options'>
@@ -145,7 +148,7 @@ function editor() {
             Run code
           </button>
         </div>
-        <div className='output'>
+        <div className='output' ref={outputRef}> {/* Attach ref here */}
           <div className='cardHeading'>
             <span>Output</span>
             <div className='button toggleOutput' onClick={handleOutputToggle}>
