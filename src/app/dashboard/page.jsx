@@ -1,7 +1,7 @@
 "use client";
 import { useUser } from "@clerk/nextjs";
 
-function dashboard() {
+function Dashboard() {
   const { isLoaded, isSignedIn, user } = useUser();
 
   if (!isLoaded || !isSignedIn) {
@@ -16,4 +16,4 @@ function dashboard() {
   );
 }
 
-export default dashboard;
+export default Dashboard;

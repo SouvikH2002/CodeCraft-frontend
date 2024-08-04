@@ -7,7 +7,7 @@ import { useState, useRef, useEffect } from 'react'
 import axios from 'axios'
 import { Languages } from './components/Languages'
 
-function editor() {
+function CodeEditor() {
   const editorRef = useRef()
   const codeboxRef = useRef() 
   const outputRef = useRef() 
@@ -186,4 +186,4 @@ function editor() {
   );
 }
 
-export default editor
+export default CodeEditor
