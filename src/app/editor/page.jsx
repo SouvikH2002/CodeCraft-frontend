@@ -3,14 +3,22 @@ import { Participant } from './components/Participant'
 import '../css/editor.css'
 import '../css/colors.css'
 import Editor from '@monaco-editor/react'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import axios from 'axios'
 import { Languages } from './components/Languages'
+import { io } from 'socket.io-client'
 
 function editor() {
+  console.log(process.env.LIVE_URL)
+  const socket = useMemo(() => {
+    return io('http://localhost:3001', {
+      withCredentials: true,
+    })
+  }, [])
+
   const editorRef = useRef()
-  const codeboxRef = useRef() 
-  const outputRef = useRef() 
+  const codeboxRef = useRef()
+  const outputRef = useRef()
   const [value, setValue] = useState('')
   const [language, setLanguage] = useState({
     language: 'javascript',
@@ -22,14 +30,18 @@ function editor() {
   const [outputToggle, setOutputToggle] = useState(true)
   const [codeboxToggle, setCodeboxToggle] = useState(true)
   const [gptToggle, setGptToggle] = useState(false)
-
+  const [userLength, setUserLength] = useState()
+  const [roomID, setRoomId] = useState('')
+  const [caretPosition, setCaretPosition] = useState({ left: 0, top: 0 })
+  const [caretName, setCaretName] = useState('')
+  const [caretVisible, setCaretVisible] = useState(false)
   const handleOutputToggle = () => {
     if (outputToggle) {
       codeboxRef.current.style.height = '88%'
-      outputRef.current.style.height = '10%' 
+      outputRef.current.style.height = '10%'
     } else {
-      codeboxRef.current.style.height = '70%' 
-      outputRef.current.style.height = '28%' 
+      codeboxRef.current.style.height = '70%'
+      outputRef.current.style.height = '28%'
     }
     setOutputToggle(!outputToggle)
   }
@@ -64,8 +76,6 @@ function editor() {
     editor.focus()
   }
 
-
-
   const handleCompileRun = async () => {
     const obj = {
       language: language.language,
@@ -92,11 +102,71 @@ function editor() {
     document.querySelector('.showOutput').innerHTML = outputCode
     setOutput(outputCode)
   }
-  useEffect(()=>{
+  useEffect(() => {
     setValue(language.default)
-  },[language])
+  }, [language])
+  useEffect(() => {
+    console.log('socket activity')
+    socket.on('joinGroup', (m) => {
+      console.log(m)
+      setUserLength(m.length)
+    })
+    socket.on('generateRoomRequest', (m) => {
+      setRoomId(m.roomID)
+      socket.emit('joinGroup', { roomID: m.roomID })
+    })
+    socket.on('getResponse', (m) => {
+      console.log('getting signal')
+      setValue(m.value)
+
+      setCaretPosition(m.position)
+      setCaretName(m.id)
+      setCaretVisible(true)
+      setTimeout(() => {
+        console.log('check')
+
+        setCaretVisible(false)
+      }, 1000)
+    })
+  }, [socket])
+  const handleEditorChange = (value, event) => {
+    if (editorRef.current) {
+      const position = editorRef.current.getPosition()
+      const { left, top } =
+        editorRef.current.getScrolledVisiblePosition(position)
+      return { left, top }
+
+      // Do something with the position, e.g., update state or display it in the UI
+    }
+  }
   return (
     <div className='container'>
+      <div className='createRoom' style={{ zIndex: 100 }}>
+        <button
+          className='createRoomID'
+          onClick={async () => {
+            socket.emit('generateRoomRequest')
+          }}
+        >
+          create id
+        </button>
+        <br />
+        <span>{roomID}</span>
+        <br />
+        <input
+          type='text'
+          onChange={(e) => {
+            setRoomId(e.target.value)
+          }}
+        />
+        <button
+          onClick={() => {
+            socket.emit('joinGroup', { roomID: roomID })
+          }}
+        >
+          join
+        </button>
+      </div>
       <div className='sideBar element'>
         <div className='logo'></div>
         <div className='options'>
@@ -117,7 +187,11 @@ function editor() {
         </div>
       ) : null}
       <div className='editor element'>
-        <div className='codebox' ref={codeboxRef}>
+        <div
+          className='codebox'
+          ref={codeboxRef}
+          style={{ position: 'relative' }}
+        >
           <div className='cardHeading'>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <span style={{ marginRight: '15px' }}>Code Editor</span>
@@ -155,13 +229,32 @@ function editor() {
               </div>
             </div>
           </div>
+          <div
+            className='caretIndicator'
+            style={{
+              position: 'absolute',
+              left: caretPosition.left,
+              top: caretPosition.top + 58,
+              zIndex: '200',
+              backgroundColor: 'red',
+              pointerEvents: 'none',
+              opacity: caretVisible ? '1' : '0',
+            }}
+          >
+            <span>{caretName}</span>
+          </div>
           <Editor
             height='90vh'
             theme='vs-dark'
             language={language.language}
             onMount={onMount}
             value={value}
-            onChange={(value) => setValue(value)}
+            onChange={(value) => {
+              setValue(value)
+              let position = handleEditorChange()
+              console.log(position)
+              socket.emit('sendSignal', { roomID, value, position })
+            }}
           />
           <button className='runButton button' onClick={handleCompileRun}>
             Run code
@@ -178,9 +271,9 @@ function editor() {
         </div>
       </div>
       <div className='participants element'>
-        <Participant></Participant>
-        <Participant></Participant>
-        <Participant></Participant>
+        {Array.from({ length: userLength }, (_, index) => (
+          <Participant key={index} />
+        ))}
       </div>
     </div>
   )
