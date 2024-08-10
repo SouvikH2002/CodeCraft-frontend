@@ -1,7 +1,19 @@
-function dashboard() {
+"use client";
+import { useUser } from "@clerk/nextjs";
+
+function Dashboard() {
+  const { isLoaded, isSignedIn, user } = useUser();
+
+  if (!isLoaded || !isSignedIn) {
+    return null;
+  }
   return (
-    <div>dashboard</div>
-  )
+    <>
+      <div className="h-full flex flex-col items-center justify-center text-2xl">
+        Hello, {user.firstName} welcome to The Dashboard
+    </div>
+    </>
+  );
 }
 
-export default dashboard
+export default Dashboard;

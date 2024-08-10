@@ -8,15 +8,27 @@ import axios from 'axios'
 import { Languages } from './components/Languages'
 import { io } from 'socket.io-client'
 import { useRouter, useSearchParams } from 'next/navigation'
-
+import { useAuth } from '@clerk/nextjs'
 function editor() {
+  const { userId } = useAuth()
+  
+  useEffect(() => {
+    axios
+      .post('/api/getUser', { userId })
+      .then((resp) => {
+        console.log(resp)
+      })
+      .catch((error) => {
+        console.error('Error fetching user:', error)
+      })
+  }, [])
   const socket = useMemo(() => {
     return io(process.env.NEXT_PUBLIC_LIVE_URL, {
       withCredentials: true,
     })
   }, [])
   useEffect(() => {
-    socket.emit('joinGroup', { roomID })
+    socket.emit('joinGroup', { roomID, userID: userId })
   }, [socket])
   const editorRef = useRef()
   const codeboxRef = useRef()
@@ -36,7 +48,7 @@ function editor() {
   const [caretPosition, setCaretPosition] = useState({ left: 0, top: 0 })
   const [caretName, setCaretName] = useState('')
   const [caretVisible, setCaretVisible] = useState(false)
-  const [requestList,setRequestList]=useState([])
+  const [requestList, setRequestList] = useState([])
   const handleOutputToggle = () => {
     if (outputToggle) {
       codeboxRef.current.style.height = '88%'
@@ -126,15 +138,15 @@ function editor() {
         setCaretVisible(false)
       }, 1000)
     })
-    socket.on('allowPermission',(socket)=>{
-      console.log("asking for permission")
-      setRequestList([...requestList,{id:socket}])
+    socket.on('allowPermission', (socket) => {
+      console.log('asking for permission')
+      setRequestList([...requestList, { id: socket }])
       console.log(requestList)
       console.log(socket)
     })
   }, [socket])
   socket.on('getCurrData', () => {
-    console.log("targeting owner")
+    console.log('targeting owner')
     let position = handleEditorChange()
     console.log(value)
     socket.emit('sendSignal', { roomID, value, position })
@@ -145,21 +157,21 @@ function editor() {
       const { left, top } =
         editorRef.current.getScrolledVisiblePosition(position)
       return { left, top }
-
     }
   }
-  
+
   return (
     <div className='container'>
-      {
-        requestList.map((value,i)=>{
-          <div className='accessCard' style={{position:"absolute",bottom:0,right:0}}>
-            <span>{value.id} wants to join</span>
-            <button onClick={() => {}}>join</button>
-            <button>reject</button>
-          </div>
-        }) 
-      }
+      {requestList.map((value, i) => {
+        ;<div
+          className='accessCard'
+          style={{ position: 'absolute', bottom: 0, right: 0 }}
+        >
+          <span>{value.id} wants to join</span>
+          <button onClick={() => {}}>join</button>
+          <button>reject</button>
+        </div>
+      })}
       <div className='sideBar element'>
         <div className='logo'></div>
         <div className='options'>
