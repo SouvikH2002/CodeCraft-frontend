@@ -1,54 +1,58 @@
-"use client"
-import Image from "next/image";
-import Editor from '@monaco-editor/react'
-import { useState,useEffect,useRef } from "react";
-import axios from "axios"
+'use client'
+import { useEffect, useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
+import { io } from 'socket.io-client'
+
 export default function Home() {
-   const editorRef = useRef()
-   const [value, setValue] = useState('')
-   const [language, setLanguage] = useState('javascript')
+  const [roomID, setRoomId] = useState('')
+  const socket = useMemo(() => {
+    return io(process.env.NEXT_PUBLIC_LIVE_URL, {
+      withCredentials: true,
+    })
+  }, [])
 
-   const onMount = (editor) => {
-     editorRef.current = editor
-     editor.focus()
-   }
+  useEffect(() => {
+    socket.on('generateRoomRequest', (m) => {
+      setRoomId(m.roomID)
+      // socket.emit('joinGroup', { roomID: m.roomID })
+    })
 
-   const onSelect = (language) => {
-     setLanguage(language)
-     setValue(CODE_SNIPPETS[language])
-   }
+    return () => {
+      socket.off('generateRoomRequest')
+    }
+  }, [socket])
+
+  const router = useRouter()
+
   return (
     <>
-      <Editor
-        height='90vh'
-        theme='vs-dark'
-        defaultLanguage='java'
-        defaultValue='// some comment'
-        onMount={onMount}
-        value={value}
-        onChange={(value) => setValue(value)}
-      />
-      <button onClick={async()=>{
-        const obj = {
-          language: 'java',
-          version: '15.0.2',
-          files: [
-            {
-              name: 'my_cool_code.js',
-              content: value,
-            },
-          ],
-          stdin: '',
-          args: ['1', '2', '3'],
-          compile_timeout: 10000,
-          run_timeout: 3000,
-          compile_memory_limit: -1,
-          run_memory_limit: -1,
-        }
-        const resp=await axios.post("https://emkc.org/api/v2/piston/execute",obj)
-        console.log(resp.data.run.stdout)
-      }}>RUN</button>
-      ;
+      <span>Home page</span>
+      <div className='createRoom' style={{ zIndex: 100 }}>
+        <button
+          className='createRoomID'
+          onClick={() => {
+            socket.emit('generateRoomRequest')
+          }}
+        >
+          create id
+        </button>
+        <br />
+        <span>{roomID}</span>
+        <br />
+        <input
+          type='text'
+          onChange={(e) => {
+            setRoomId(e.target.value)
+          }}
+        />
+        <button
+          onClick={() => {
+            router.push(`/editor?roomID=${roomID}`)
+          }}
+        >
+          join
+        </button>
+      </div>
     </>
   )
 }

@@ -7,15 +7,17 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import axios from 'axios'
 import { Languages } from './components/Languages'
 import { io } from 'socket.io-client'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 function editor() {
-  console.log(process.env.LIVE_URL)
   const socket = useMemo(() => {
-    return io('http://localhost:3001', {
+    return io(process.env.NEXT_PUBLIC_LIVE_URL, {
       withCredentials: true,
     })
   }, [])
-
+  useEffect(() => {
+    socket.emit('joinGroup', { roomID })
+  }, [socket])
   const editorRef = useRef()
   const codeboxRef = useRef()
   const outputRef = useRef()
@@ -31,10 +33,10 @@ function editor() {
   const [codeboxToggle, setCodeboxToggle] = useState(true)
   const [gptToggle, setGptToggle] = useState(false)
   const [userLength, setUserLength] = useState()
-  const [roomID, setRoomId] = useState('')
   const [caretPosition, setCaretPosition] = useState({ left: 0, top: 0 })
   const [caretName, setCaretName] = useState('')
   const [caretVisible, setCaretVisible] = useState(false)
+  const [requestList,setRequestList]=useState([])
   const handleOutputToggle = () => {
     if (outputToggle) {
       codeboxRef.current.style.height = '88%'
@@ -75,7 +77,8 @@ function editor() {
     editorRef.current = editor
     editor.focus()
   }
-
+  const searchParams = useSearchParams()
+  const roomID = searchParams.get('roomID')
   const handleCompileRun = async () => {
     const obj = {
       language: language.language,
@@ -93,10 +96,8 @@ function editor() {
       compile_memory_limit: -1,
       run_memory_limit: -1,
     }
-    console.log(obj)
     const resp = await axios.post('https://emkc.org/api/v2/piston/execute', obj)
-    console.log('checkintg')
-    console.log(resp.data.run.stdout)
+
     const outputCode = resp.data.run.stdout.replace(/\n/g, '<br>')
 
     document.querySelector('.showOutput').innerHTML = outputCode
@@ -111,12 +112,9 @@ function editor() {
       console.log(m)
       setUserLength(m.length)
     })
-    socket.on('generateRoomRequest', (m) => {
-      setRoomId(m.roomID)
-      socket.emit('joinGroup', { roomID: m.roomID })
-    })
     socket.on('getResponse', (m) => {
       console.log('getting signal')
+      console.log(m)
       setValue(m.value)
 
       setCaretPosition(m.position)
@@ -128,7 +126,19 @@ function editor() {
         setCaretVisible(false)
       }, 1000)
     })
+    socket.on('allowPermission',(socket)=>{
+      console.log("asking for permission")
+      setRequestList([...requestList,{id:socket}])
+      console.log(requestList)
+      console.log(socket)
+    })
   }, [socket])
+  socket.on('getCurrData', () => {
+    console.log("targeting owner")
+    let position = handleEditorChange()
+    console.log(value)
+    socket.emit('sendSignal', { roomID, value, position })
+  })
   const handleEditorChange = (value, event) => {
     if (editorRef.current) {
       const position = editorRef.current.getPosition()
@@ -136,37 +146,20 @@ function editor() {
         editorRef.current.getScrolledVisiblePosition(position)
       return { left, top }
 
-      // Do something with the position, e.g., update state or display it in the UI
     }
   }
+  
   return (
     <div className='container'>
-      <div className='createRoom' style={{ zIndex: 100 }}>
-        <button
-          className='createRoomID'
-          onClick={async () => {
-            socket.emit('generateRoomRequest')
-          }}
-        >
-          create id
-        </button>
-        <br />
-        <span>{roomID}</span>
-        <br />
-        <input
-          type='text'
-          onChange={(e) => {
-            setRoomId(e.target.value)
-          }}
-        />
-        <button
-          onClick={() => {
-            socket.emit('joinGroup', { roomID: roomID })
-          }}
-        >
-          join
-        </button>
-      </div>
+      {
+        requestList.map((value,i)=>{
+          <div className='accessCard' style={{position:"absolute",bottom:0,right:0}}>
+            <span>{value.id} wants to join</span>
+            <button onClick={() => {}}>join</button>
+            <button>reject</button>
+          </div>
+        }) 
+      }
       <div className='sideBar element'>
         <div className='logo'></div>
         <div className='options'>
@@ -252,7 +245,7 @@ function editor() {
             onChange={(value) => {
               setValue(value)
               let position = handleEditorChange()
-              console.log(position)
+
               socket.emit('sendSignal', { roomID, value, position })
             }}
           />
