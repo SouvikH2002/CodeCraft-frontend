@@ -56,7 +56,24 @@ function CodeEditor() {
       withCredentials: true,
     })
   }, [])
+  useEffect(() => {
 
+    const handlePopState = () => {
+      if (socket) {
+        socket.disconnect()
+        console.log('Socket disconnected due to back button press.')
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      if (socket) {
+        socket.disconnect()
+      }
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [])
   const editorRef = useRef()
   const codeboxRef = useRef()
   const outputRef = useRef()
@@ -225,7 +242,10 @@ function CodeEditor() {
               r Confirmation...
             </span>
             <div className='userDetails'>
-              <div className='logo' style={{backgroundImage:`url(${userData.user.photo})`}}></div>
+              <div
+                className='logo'
+                style={{ backgroundImage: `url(${userData.user.photo})` }}
+              ></div>
               <div className='userName'>
                 <h3>{`${userData.user.firstName} ${userData.user.lastName}`}</h3>
               </div>
@@ -244,7 +264,7 @@ function CodeEditor() {
             )}
             {requestList.map((value, idx) => (
               <div
-              key={idx}
+                key={idx}
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
