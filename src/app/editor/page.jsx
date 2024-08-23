@@ -9,7 +9,7 @@ import { Languages } from './components/Languages'
 import { io } from 'socket.io-client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@clerk/nextjs'
-function editor() {
+function CodeEditor() {
   const { userId } = useAuth()
   const [userData, setUserData] = useState(null)
   const [currJoinedList, setCurrJoinedList] = useState()
@@ -244,6 +244,7 @@ function editor() {
             )}
             {requestList.map((value, idx) => (
               <div
+              key={idx}
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -409,6 +410,7 @@ function editor() {
             {currJoinedList &&
               currJoinedList.users.map((user, index) => (
                 <Participant
+                  key={index}
                   profilePic={user.userData.user.photo}
                   name={user.userData.user.firstName}
                   owner={currJoinedList.creator}
@@ -423,4 +425,4 @@ function editor() {
   )
 }
 
-export default editor
+export default CodeEditor
