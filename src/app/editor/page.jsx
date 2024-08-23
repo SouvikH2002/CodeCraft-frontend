@@ -11,12 +11,41 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@clerk/nextjs'
 function editor() {
   const { userId } = useAuth()
-  
+  const [userData, setUserData] = useState(null)
+  const [currJoinedList, setCurrJoinedList] = useState()
+  const [waitingState, setWaitingState] = useState(false)
+  const [rejectionState, setRejectionState] = useState(false)
   useEffect(() => {
+    console.log(userId)
     axios
-      .post('/api/getUser', { userId })
+      .post('/api/users', { userId })
       .then((resp) => {
         console.log(resp)
+        setUserData(resp.data)
+        socket.on('feedback', (m) => {
+          console.log(m)
+          if (m.msg === 'accepted') {
+            console.log(resp.data)
+            if (resp.data) {
+              socket.emit('joinGroup', {
+                roomID,
+                userID: userId,
+                userData: resp.data,
+              })
+            }
+            // setWaitingState(false)
+          } else {
+            // setWaitingState(false)
+            setRejectionState(true)
+          }
+          setWaitingState(false)
+        })
+        socket.emit('checkForRoom', {
+          roomID,
+          userID: userId,
+          userData: resp.data,
+        })
+        setWaitingState(true)
       })
       .catch((error) => {
         console.error('Error fetching user:', error)
@@ -27,9 +56,7 @@ function editor() {
       withCredentials: true,
     })
   }, [])
-  useEffect(() => {
-    socket.emit('joinGroup', { roomID, userID: userId })
-  }, [socket])
+
   const editorRef = useRef()
   const codeboxRef = useRef()
   const outputRef = useRef()
@@ -46,7 +73,7 @@ function editor() {
   const [gptToggle, setGptToggle] = useState(false)
   const [userLength, setUserLength] = useState()
   const [caretPosition, setCaretPosition] = useState({ left: 0, top: 0 })
-  const [caretName, setCaretName] = useState('')
+  const [caretName, setCaretName] = useState()
   const [caretVisible, setCaretVisible] = useState(false)
   const [requestList, setRequestList] = useState([])
   const handleOutputToggle = () => {
@@ -66,7 +93,7 @@ function editor() {
         'calc(45% - 80px)'
     } else {
       document.querySelector('.container .editor').style.width =
-        'calc(76% - 80px)'
+        'calc(78% - 80px)'
       document.querySelector('.container .participants').style.width = '20%'
     }
     setGptToggle(!gptToggle)
@@ -75,11 +102,11 @@ function editor() {
   const handleCodeboxToggle = () => {
     if (codeboxToggle) {
       document.querySelector('.container .editor').style.width =
-        'calc(87% - 80px)'
+        'calc(88% - 80px)'
       document.querySelector('.container .participants').style.width = '10%'
     } else {
       document.querySelector('.container .editor').style.width =
-        'calc(76% - 80px)'
+        'calc(78% - 80px)'
       document.querySelector('.container .participants').style.width = '20%'
     }
     setCodeboxToggle(!codeboxToggle)
@@ -122,6 +149,7 @@ function editor() {
     console.log('socket activity')
     socket.on('joinGroup', (m) => {
       console.log(m)
+      setCurrJoinedList(m.userData)
       setUserLength(m.length)
     })
     socket.on('getResponse', (m) => {
@@ -130,7 +158,7 @@ function editor() {
       setValue(m.value)
 
       setCaretPosition(m.position)
-      setCaretName(m.id)
+      if (m.userData) setCaretName(m.userData.user.photo)
       setCaretVisible(true)
       setTimeout(() => {
         console.log('check')
@@ -138,13 +166,17 @@ function editor() {
         setCaretVisible(false)
       }, 1000)
     })
-    socket.on('allowPermission', (socket) => {
+    socket.on('allowPermission', ({ userData, clientSocketID }) => {
       console.log('asking for permission')
-      setRequestList([...requestList, { id: socket }])
-      console.log(requestList)
-      console.log(socket)
+      console.log(userData)
+      console.log(clientSocketID)
+      setRequestList((previousRequestList) => [
+        ...previousRequestList,
+        { userData: userData, clientSocketID: clientSocketID },
+      ])
     })
   }, [socket])
+  useEffect(() => {}, [userData, socket])
   socket.on('getCurrData', () => {
     console.log('targeting owner')
     let position = handleEditorChange()
@@ -154,132 +186,239 @@ function editor() {
   const handleEditorChange = (value, event) => {
     if (editorRef.current) {
       const position = editorRef.current.getPosition()
-      const { left, top } =
-        editorRef.current.getScrolledVisiblePosition(position)
-      return { left, top }
+      if (position) {
+        const { left, top } =
+          editorRef.current.getScrolledVisiblePosition(position)
+        return { left, top }
+      }
     }
+    return { left: 0, top: 0 }
   }
-
+  const handleAllowUser = (value, index) => {
+    const newItems = requestList.filter((_, i) => i !== index)
+    setRequestList(newItems)
+    socket.emit('responseFromOwner', {
+      roomID: roomID,
+      msg: 'allowed',
+      clientSocketID: value.clientSocketID,
+    })
+  }
+  const handleRejectUser = (value, index) => {
+    const newItems = requestList.filter((_, i) => i !== index)
+    setRequestList(newItems)
+    socket.emit('responseFromOwner', {
+      roomID: roomID,
+      msg: 'rejected',
+      clientSocketID: value.clientSocketID,
+    })
+  }
   return (
     <div className='container'>
-      {requestList.map((value, i) => {
-        ;<div
-          className='accessCard'
-          style={{ position: 'absolute', bottom: 0, right: 0 }}
-        >
-          <span>{value.id} wants to join</span>
-          <button onClick={() => {}}>join</button>
-          <button>reject</button>
-        </div>
-      })}
-      <div className='sideBar element'>
-        <div className='logo'></div>
-        <div className='options'>
-          <div
-            className='option button toggleGPT'
-            onClick={handleGptToggle}
-          ></div>
-          <div className='option button'></div>
-          <div className='option button'></div>
-        </div>
-        <div className='settings button'></div>
-      </div>
-      {gptToggle ? (
-        <div className='gpt element'>
-          <div className='cardHeading'>
-            <span>ChatGPT</span>
-          </div>
-        </div>
-      ) : null}
-      <div className='editor element'>
-        <div
-          className='codebox'
-          ref={codeboxRef}
-          style={{ position: 'relative' }}
-        >
-          <div className='cardHeading'>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ marginRight: '15px' }}>Code Editor</span>
-              <div>
-                <span style={{ fontSize: '12px' }}>{language.language}</span>
-                <span
-                  style={{
-                    fontSize: '12px',
-                    marginLeft: '15px',
-                    color: '#ffffff70',
-                  }}
-                >
-                  {`v ${language.version}`}
-                </span>
+      {waitingState || rejectionState ? (
+        waitingState ? (
+          <div className='waitingCard'>
+            <span className='text'>
+              Waiting f
+              <>
+                <span class='loader'></span>
+              </>
+              r Confirmation...
+            </span>
+            <div className='userDetails'>
+              <div className='logo' style={{backgroundImage:`url(${userData.user.photo})`}}></div>
+              <div className='userName'>
+                <h3>{`${userData.user.firstName} ${userData.user.lastName}`}</h3>
               </div>
             </div>
+          </div>
+        ) : (
+          <span>rejected :) like my life</span>
+        )
+      ) : (
+        <>
+          <div className='accessCard'>
+            {requestList.length > 0 && (
+              <span className='heading'>
+                Someone wants to join this session
+              </span>
+            )}
+            {requestList.map((value, idx) => (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <div className='profile'>
+                  <div
+                    className='dp'
+                    style={{
+                      backgroundImage: `url(${value.userData.user.photo})`,
+                    }}
+                  ></div>
+                  <span className='name'>
+                    {/* {JSON.stringify(value)} */}
+                    {value.userData.user.firstName}{' '}
+                    {value.userData.user.lastName}
+                  </span>
+                </div>
+                <div className='options'>
+                  <div className='allowBtn button'>
+                    <i
+                      class='fa-solid fa-check'
+                      style={{ color: '#46C6C2' }}
+                      onClick={() => handleAllowUser(value, idx)}
+                    ></i>
+                  </div>
+                  <div className='rejectBtn button'>
+                    <i
+                      class='fa-solid fa-xmark'
+                      style={{ color: '#ec5e59' }}
+                      onClick={() => handleRejectUser(value, idx)}
+                    ></i>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className='sideBar element'>
+            <div className='logo'></div>
             <div className='options'>
-              <div className='button option languages'>
-                <Languages setLanguage={setLanguage}></Languages>
+              <div
+                className='option button toggleGPT'
+                onClick={handleGptToggle}
+              ></div>
+              <div className='option button'></div>
+              <div className='option button'></div>
+            </div>
+            <div className='settings button'></div>
+          </div>
+          {gptToggle ? (
+            <div className='gpt element'>
+              <div className='cardHeading'>
+                <span>ChatGPT</span>
+              </div>
+            </div>
+          ) : null}
+          <div className='editor element'>
+            <div
+              className='codebox'
+              ref={codeboxRef}
+              style={{ position: 'relative' }}
+            >
+              <div className='cardHeading'>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ marginRight: '15px' }}>Code Editor</span>
+                  <div>
+                    <span style={{ fontSize: '12px' }}>
+                      {language.language}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '12px',
+                        marginLeft: '15px',
+                        color: '#ffffff70',
+                      }}
+                    >
+                      {`v ${language.version}`}
+                    </span>
+                  </div>
+                </div>
+                <div className='options'>
+                  <div className='button option languages'>
+                    <Languages setLanguage={setLanguage}></Languages>
+                  </div>
+                  <div
+                    className='button option expand'
+                    onClick={handleCodeboxToggle}
+                    style={
+                      gptToggle
+                        ? {
+                            opacity: 0.5,
+                            cursor: 'not-allowed',
+                            pointerEvents: 'none',
+                          }
+                        : {}
+                    }
+                  >
+                    <span>expand ➔</span>
+                  </div>
+                </div>
               </div>
               <div
-                className='button option expand'
-                onClick={handleCodeboxToggle}
-                style={
-                  gptToggle
-                    ? {
-                        opacity: 0.5,
-                        cursor: 'not-allowed',
-                        pointerEvents: 'none',
-                      }
-                    : {}
-                }
+                className='caretIndicator'
+                style={{
+                  position: 'absolute',
+                  left: caretPosition.left + 5,
+                  top: caretPosition.top + 58,
+                  zIndex: '200',
+                  pointerEvents: 'none',
+                  opacity: caretVisible ? '1' : '0',
+                }}
               >
-                <span>expand ➔</span>
+                <div
+                  className='caretDP'
+                  style={{
+                    backgroundImage: `url(${caretName})`,
+                    height: '30px',
+                    width: '30px',
+                    borderRadius: '50%',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    borderBottomLeftRadius: '2px',
+                  }}
+                ></div>
               </div>
-            </div>
-          </div>
-          <div
-            className='caretIndicator'
-            style={{
-              position: 'absolute',
-              left: caretPosition.left,
-              top: caretPosition.top + 58,
-              zIndex: '200',
-              backgroundColor: 'red',
-              pointerEvents: 'none',
-              opacity: caretVisible ? '1' : '0',
-            }}
-          >
-            <span>{caretName}</span>
-          </div>
-          <Editor
-            height='90vh'
-            theme='vs-dark'
-            language={language.language}
-            onMount={onMount}
-            value={value}
-            onChange={(value) => {
-              setValue(value)
-              let position = handleEditorChange()
+              <Editor
+                height='90vh'
+                theme='vs-dark'
+                language={language.language}
+                onMount={onMount}
+                value={value}
+                onChange={(value) => {
+                  setValue(value)
+                  let position = handleEditorChange()
 
-              socket.emit('sendSignal', { roomID, value, position })
-            }}
-          />
-          <button className='runButton button' onClick={handleCompileRun}>
-            Run code
-          </button>
-        </div>
-        <div className='output' ref={outputRef}>
-          <div className='cardHeading'>
-            <span>Output</span>
-            <div className='button toggleOutput' onClick={handleOutputToggle}>
-              <span>down &#8595;</span>
+                  socket.emit('sendSignal', {
+                    roomID,
+                    value,
+                    position,
+                    userData,
+                  })
+                }}
+              />
+              <button className='runButton button' onClick={handleCompileRun}>
+                Run code
+              </button>
+            </div>
+            <div className='output' ref={outputRef}>
+              <div className='cardHeading'>
+                <span>Output</span>
+                <div
+                  className='button toggleOutput'
+                  onClick={handleOutputToggle}
+                >
+                  <span>down &#8595;</span>
+                </div>
+              </div>
+              <div className='showOutput'></div>
             </div>
           </div>
-          <div className='showOutput'></div>
-        </div>
-      </div>
-      <div className='participants element'>
-        {Array.from({ length: userLength }, (_, index) => (
-          <Participant key={index} />
-        ))}
-      </div>
+          <div className='participants element'>
+            {currJoinedList &&
+              currJoinedList.users.map((user, index) => (
+                <Participant
+                  profilePic={user.userData.user.photo}
+                  name={user.userData.user.firstName}
+                  owner={currJoinedList.creator}
+                  localID={user.userData.user.clerkId}
+                  codeboxToggle={codeboxToggle}
+                ></Participant>
+              ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }

@@ -1,0 +1,13 @@
+.navSpan {
+  display: flex;
+  justify-content: flex-end;
+  background-color: var(--base-color);
+  padding-right: 15px;
+  height: 50px;
+  align-items: center;
+}
+.navSpan i{
+ margin-right: 20px;
+ font-size: 15px;
+ color: #fff9;
+}

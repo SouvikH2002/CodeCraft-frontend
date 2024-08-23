@@ -1,17 +1,18 @@
 .container {
   width: 100vw;
-  height: 100vh;
+  height: calc(100vh - 50px);
   display: flex;
   background-color: var(--base-color);
-  padding: 15px;
+  padding: 0 15px 15px 15px;
   justify-content: space-between;
 }
+
 * {
   transition: 0.2s ease-in-out;
 }
 .container .element {
   border-radius: 15px;
-  margin: 0 10px;
+  margin: 0 0px;
 }
 
 .container .sideBar {
@@ -34,13 +35,12 @@
   margin: 15px 0;
 }
 .container .editor {
-  width: calc(76% - 80px);
+  width: calc(78% - 80px);
   height: 100%;
-  background-color: var(--cardholder-color);
+  /* background-color: var(--cardholder-color); */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 10px;
 }
 .container .editor .codebox {
   overflow: hidden;
@@ -48,7 +48,7 @@
   height: 70%;
   width: 100%;
   background-color: var(--card-color);
-  border: 2px solid var(--border-color);
+  border: 1px solid var(--border-color);
   position: relative;
 }
 .container .editor .codebox .cardHeading .options {
@@ -65,7 +65,7 @@
   background-color: var(--button2-color);
 }
 .container .editor .codebox .runButton {
-  padding: 15px 25px;
+  padding: 10px 15px;
   background-color: var(--button1-color);
   color: white;
   border-radius: 7px;
@@ -79,7 +79,7 @@
   width: 100%;
   height: 28%;
   background-color: var(--card-color);
-  border: 2px solid var(--border-color);
+  border: 1px solid var(--border-color);
 }
 .container .editor .output .showOutput {
   color: var(--span-primary-color);
@@ -120,7 +120,22 @@
   display: flex;
   justify-content: center;
   margin-bottom: 15px;
+  position: relative;
   align-items: center;
+  flex-direction: column;
+}
+.container .participant span {
+  position: absolute;
+  bottom: 15px;
+  left: 20px;
+  font-size: 13px;
+}
+.container .participant i {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  transform: rotate(25deg);
+  color: #eda116;
 }
 .container .participant .logo {
   height: 60px;
@@ -128,7 +143,7 @@
   background-color: white;
   border-radius: 50px;
 }
-.languages .langOptions{
+.languages .langOptions {
   position: absolute;
   z-index: 10;
   background-color: white;
@@ -140,21 +155,139 @@
   transition: 0.3s ease-in-out;
 }
 
-.languages .langOptions .langOption{
+.languages .langOptions .langOption {
   padding: 15px 20px;
   width: 150px;
 }
-.languages .langOptions .langOption:hover{
+.languages .langOptions .langOption:hover {
   background-color: rgb(215, 215, 215);
 }
 .languages:hover .langOptions,
 .languages .langOptions:hover {
-    transform: rotateX(0deg);
-
+  transform: rotateX(0deg);
 }
-.createRoom{
-  position:absolute;
+.createRoom {
+  position: absolute;
   top: 0;
   left: 0;
   background-color: white;
+}
+.container .accessCard {
+  background-color: var(--card-color);
+  padding: 25px;
+  border-radius: 5px;
+  position: absolute;
+  right: 15px;
+  bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+}
+.container .accessCard .profile {
+  display: flex;
+  padding: 10px 5px;
+  align-items: center;
+}
+.container .accessCard .heading {
+  font-size: 15px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+.container .accessCard .profile .dp {
+  height: 35px;
+  width: 35px;
+  background-position: center;
+  background-size: cover;
+  border-radius: 50%;
+  margin-right: 15px;
+}
+.container .accessCard .name {
+  font-size: 13px;
+  font-weight: bold;
+  color: rgb(206, 206, 206);
+}
+.container .accessCard .options {
+  display: flex;
+}
+.container .accessCard .options i {
+  padding: 10px;
+}
+.loader {
+  width: 48px;
+  height: 48px;
+  display: inline-block;
+  position: relative;
+  background-color: #fff;
+  background: radial-gradient(
+    ellipse at center,
+    #ff3d00 0%,
+    #ff3d00 14%,
+    #fff 15%,
+    #fff 100%
+  );
+  background-size: cover;
+  background-position: center;
+  border-radius: 50%;
+}
+.loader::after,
+.loader::before {
+  content: '';
+  position: absolute;
+  height: 16px;
+  width: 4px;
+  background: #ff3d00;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) rotate(0deg);
+  transform-origin: 25% 0;
+  box-sizing: border-box;
+  animation: rotation 10s linear infinite;
+}
+.loader::before {
+  height: 22px;
+  width: 2px;
+  transform: translateX(-50%) rotate(0deg);
+  animation-duration: 1s;
+}
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.container .waitingCard {
+  border-radius: 20px;
+  margin: auto;
+  padding-bottom: 100px;
+}
+.container .waitingCard .userDetails {
+  display: flex;
+  background-color: var(--card-color);
+  padding: 20px 35px;
+  border-radius: 5px;
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  
+}
+.container .waitingCard .userDetails .logo {
+  height: 30px;
+  width: 30px;
+  border-radius: 50%;
+  background-position: center;
+  background-size: cover;
+}
+.container .waitingCard .text {
+  letter-spacing: 7px;
+  font-size: 90px;
+
+}
+.container .waitingCard .userName h3 {
+  font-size: 20px;
+  color: rgb(255, 255, 255);
+  margin-left: 20px;
+
 }
