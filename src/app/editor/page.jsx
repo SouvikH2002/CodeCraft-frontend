@@ -107,7 +107,7 @@ function CodeEditor() {
   const handleGptToggle = () => {
     if (!gptToggle) {
       document.querySelector('.container .editor').style.width =
-        'calc(45% - 80px)'
+        'calc(33% - 20px)'
     } else {
       document.querySelector('.container .editor').style.width =
         'calc(78% - 80px)'
@@ -309,7 +309,9 @@ function CodeEditor() {
               <div
                 className='option button toggleGPT'
                 onClick={handleGptToggle}
-              ></div>
+              >
+                <i class='fa-solid fa-brain'></i>
+              </div>
               <div className='option button'></div>
               <div className='option button'></div>
             </div>
@@ -319,6 +321,15 @@ function CodeEditor() {
             <div className='gpt element'>
               <div className='cardHeading'>
                 <span>ChatGPT</span>
+              </div>
+              <div className="result">
+                
+              </div>
+              <div className='msgBar'>
+                <input type='text' />
+                <button>
+                  <i class='fa-solid fa-arrow-up'></i>
+                </button>
               </div>
             </div>
           ) : null}

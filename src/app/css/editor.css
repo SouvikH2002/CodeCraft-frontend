@@ -33,6 +33,9 @@
   background-color: white;
   border-radius: 50%;
   margin: 15px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .container .editor {
   width: calc(78% - 80px);
@@ -92,6 +95,12 @@
   overflow: hidden;
   width: 40%;
   background-color: var(--card-color);
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid #70685c;
+    
 }
 .container .element .cardHeading {
   width: 100%;
@@ -290,4 +299,37 @@
   color: rgb(255, 255, 255);
   margin-left: 20px;
 
+}
+.gpt .msgBar{
+  width: 100%;
+  background-color: var(--card-heading-color);
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 20px 10px;
+  justify-content: space-between;
+  position: relative;
+}
+
+.gpt .msgBar input{
+width: 100%;
+height: 40px;
+border-radius: 10px;
+background-color: #232628;
+padding: 10px;
+}
+.gpt .msgBar button{
+  height: 40px;
+  width: 40px;
+  border-radius: 10px;
+  background-color: black;
+  position: absolute;
+  right: 10px;
+  background-color: #5b6267;
+
+}
+.gpt .result{
+  height: calc(100% - 60px - 54px );
+  width: 100%;
+  background-color: pink;
 }
