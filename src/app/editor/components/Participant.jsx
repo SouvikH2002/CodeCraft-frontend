@@ -4,7 +4,7 @@ export const Participant = ({profilePic,name,owner,localID,codeboxToggle}) => {
   console.log(localID)
   return (
     <div className='participant'>
-      {(owner.clrkID===localID)?<i class='fa-solid fa-crown'></i>:<></>}
+      {(owner.clrkID===localID)?<i className='fa-solid fa-crown'></i>:<></>}
       <div
         className='logo'
         style={{

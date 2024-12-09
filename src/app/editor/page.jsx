@@ -2,66 +2,201 @@
 import { Participant } from './components/Participant'
 import '../css/editor.css'
 import '../css/colors.css'
-import Editor from '@monaco-editor/react'
+import Peer from 'simple-peer'
+import Editor, { loader } from '@monaco-editor/react'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import axios from 'axios'
 import { Languages } from './components/Languages'
 import { io } from 'socket.io-client'
 import { useRouter, useSearchParams } from 'next/navigation'
+
 import { useAuth } from '@clerk/nextjs'
+const Video = (props) => {
+  const ref = useRef()
+
+  useEffect(() => {
+    props.peer.on('stream', (stream) => {
+      ref.current.srcObject = stream
+    })
+  }, [props.peer])
+
+  return (
+    <video
+      playsInline
+      autoPlay
+      ref={ref}
+      style={{ height: '40%', width: '50%' }}
+    />
+  )
+}
 function CodeEditor() {
+  const searchParams = useSearchParams()
+  const roomIDParam = searchParams.get('roomID')
+
+  useEffect(() => {
+    if (document.querySelector('.container .participants')) {
+      if (roomIDParam === 'singleUser') {
+        document.querySelector('.container .participants').style.display =
+          'none'
+        const editorDiv = document.querySelector('.container .editor')
+        if (editorDiv) {
+          editorDiv.style.width = 'calc(100% - 95px)'
+        } else {
+          console.error('Editor div not found')
+        }
+      }
+    }
+  }, [])
+  useEffect(() => {
+    loader.init().then((monaco) => {
+      monaco.editor.defineTheme('myTheme', {
+        base: 'vs-dark',
+        inherit: true,
+        rules: [],
+        colors: {
+          'editor.background': '#26262667',
+        },
+      })
+    })
+  }, [])
   const { userId } = useAuth()
   const [userData, setUserData] = useState(null)
   const [currJoinedList, setCurrJoinedList] = useState()
   const [waitingState, setWaitingState] = useState(false)
   const [rejectionState, setRejectionState] = useState(false)
+  const [peers, setPeers] = useState([])
+  const userVideo = useRef()
+  const peersRef = useRef([])
   useEffect(() => {
-    console.log(userId)
-    axios
-      .post('/api/users', { userId })
-      .then((resp) => {
-        console.log(resp)
-        setUserData(resp.data)
-        socket.on('feedback', (m) => {
-          console.log(m)
-          if (m.msg === 'accepted') {
-            console.log(resp.data)
-            if (resp.data) {
-              socket.emit('joinGroup', {
-                roomID,
-                userID: userId,
-                userData: resp.data,
-              })
+    if (roomIDParam !== 'singleUser') {
+      axios
+        .post('/api/users', { userId })
+        .then((resp) => {
+          setUserData(resp.data)
+          socket.on('feedback', (m) => {
+            if (m.msg === 'accepted') {
+              const socketId = m.socketID
+              navigator.mediaDevices
+                .getUserMedia({ video: true, audio: true })
+                .then((stream) => {
+                  userVideo.current.srcObject = stream
+                  if (resp.data) {
+                    socket.emit('joinGroup', {
+                      roomID,
+                      userID: userId,
+                      userData: resp.data,
+                    })
+                  }
+
+                  socket.on('joinGroup', (m) => {
+                    console.log('join group incoming signal')
+                    console.log(m)
+                    setCurrJoinedList(m.userData)
+                    setUserLength(m.length)
+                  })
+                  socket.on('allUsers', (usersInThisRoom) => {
+                    const peers = []
+                    usersInThisRoom.forEach((userID) => {
+                      const peer = createPeer(userID.socketID, socket.id, stream)
+                      peersRef.current.push({
+                        peerID: userID.socketID,
+                        peer,
+                      })
+                      peers.push(peer)
+                    })
+                    setPeers(peers)
+                  })
+                  socket.on('user joined', (payload) => {
+                    const peer = addPeer(
+                      payload.signal,
+                      payload.callerID,
+                      stream
+                    )
+                    peersRef.current.push({
+                      peerID: payload.callerID,
+                      peer,
+                    })
+                    console.log(
+                      'adding peer at user joined',
+                      peer,
+                      payload.callerID
+                    )
+                    setPeers((users) => [...users, peer])
+                  })
+
+                  socket.on('receiving returned signal', (payload) => {
+                    const item = peersRef.current.find(
+                      (p) => p.peerID === payload.id
+                    )
+                    console.log('items at receiving return signal')
+                    console.log(item)
+                    item.peer.signal(payload.signal)
+                  })
+                })
+              // setWaitingState(false)
+            } else {
+              // setWaitingState(false)
+              setRejectionState(true)
             }
-            // setWaitingState(false)
-          } else {
-            // setWaitingState(false)
-            setRejectionState(true)
-          }
-          setWaitingState(false)
+            setWaitingState(false)
+          })
+          socket.emit('checkForRoom', {
+            roomID,
+            userID: userId,
+            userData: resp.data,
+          })
+          setWaitingState(true)
         })
-        socket.emit('checkForRoom', {
-          roomID,
-          userID: userId,
-          userData: resp.data,
+        .catch((error) => {
+          console.error('Error fetching user:', error)
         })
-        setWaitingState(true)
-      })
-      .catch((error) => {
-        console.error('Error fetching user:', error)
-      })
+    }
   }, [])
+  function createPeer(userToSignal, callerID, stream) {
+    console.log('createPeer called', userToSignal, callerID)
+    const peer = new Peer({
+      initiator: true,
+      trickle: false,
+      stream,
+    })
+
+    peer.on('signal', (signal) => {
+      socket.emit('sending signal', {
+        userToSignal,
+        callerID,
+        signal,
+      })
+    })
+
+    return peer
+  }
+
+  function addPeer(incomingSignal, callerID, stream) {
+    console.log('addPeer called', callerID)
+    const peer = new Peer({
+      initiator: false,
+      trickle: false,
+      stream,
+    })
+
+    peer.on('signal', (signal) => {
+      socket.emit('returning signal', { signal, callerID })
+    })
+
+    peer.signal(incomingSignal)
+
+    return peer
+  }
+
   const socket = useMemo(() => {
     return io(process.env.NEXT_PUBLIC_LIVE_URL, {
       withCredentials: true,
     })
   }, [])
   useEffect(() => {
-
     const handlePopState = () => {
       if (socket) {
         socket.disconnect()
-        console.log('Socket disconnected due to back button press.')
       }
     }
 
@@ -78,6 +213,7 @@ function CodeEditor() {
   const codeboxRef = useRef()
   const outputRef = useRef()
   const [value, setValue] = useState('')
+  const [stdInput, setStdInput] = useState('')
   const [language, setLanguage] = useState({
     language: 'javascript',
     version: '18.15.0',
@@ -85,6 +221,7 @@ function CodeEditor() {
       '\nfunction greet(name) {\n\tconsole.log("Hello, " + name + "!");\n}\n\ngreet("Alex");\n',
   })
   const [output, setOutput] = useState('Click run to see the result')
+  const [outputError, setOutputError] = useState('')
   const [outputToggle, setOutputToggle] = useState(true)
   const [codeboxToggle, setCodeboxToggle] = useState(true)
   const [gptToggle, setGptToggle] = useState(false)
@@ -93,6 +230,7 @@ function CodeEditor() {
   const [caretName, setCaretName] = useState()
   const [caretVisible, setCaretVisible] = useState(false)
   const [requestList, setRequestList] = useState([])
+
   const handleOutputToggle = () => {
     if (outputToggle) {
       codeboxRef.current.style.height = '88%'
@@ -133,8 +271,8 @@ function CodeEditor() {
     editorRef.current = editor
     editor.focus()
   }
-  const searchParams = useSearchParams()
   const roomID = searchParams.get('roomID')
+
   const handleCompileRun = async () => {
     const obj = {
       language: language.language,
@@ -145,7 +283,7 @@ function CodeEditor() {
           content: value,
         },
       ],
-      stdin: '',
+      stdin: stdInput,
       args: ['1', '2', '3'],
       compile_timeout: 10000,
       run_timeout: 3000,
@@ -155,61 +293,57 @@ function CodeEditor() {
     const resp = await axios.post('https://emkc.org/api/v2/piston/execute', obj)
 
     const outputCode = resp.data.run.stdout.replace(/\n/g, '<br>')
-
-    document.querySelector('.showOutput').innerHTML = outputCode
+    const outputError = resp.data.run.stderr.replace(/\n/g, '<br>')
+    if (outputCode !== '') {
+      document.querySelector('.showOutput1').style.color = 'white'
+      document.querySelector('.showOutput1').innerHTML = outputCode
+    } else if (outputError !== '') {
+      document.querySelector('.showOutput1').style.color = '#ff7676'
+      document.querySelector('.showOutput1').innerHTML = outputError
+    }
     setOutput(outputCode)
+    setOutputError(outputError)
   }
   useEffect(() => {
     setValue(language.default)
   }, [language])
   useEffect(() => {
-    console.log('socket activity')
-    socket.on('joinGroup', (m) => {
-      console.log(m)
-      setCurrJoinedList(m.userData)
-      setUserLength(m.length)
-    })
-    socket.on('getResponse', (m) => {
-      console.log('getting signal')
-      console.log(m)
-      setValue(m.value)
-
-      setCaretPosition(m.position)
-      if (m.userData) setCaretName(m.userData.user.photo)
-      setCaretVisible(true)
-      setTimeout(() => {
-        console.log('check')
-
-        setCaretVisible(false)
-      }, 1000)
-    })
-    socket.on('allowPermission', ({ userData, clientSocketID }) => {
-      console.log('asking for permission')
-      console.log(userData)
-      console.log(clientSocketID)
-      setRequestList((previousRequestList) => [
-        ...previousRequestList,
-        { userData: userData, clientSocketID: clientSocketID },
-      ])
-    })
-  }, [socket])
-  useEffect(() => {}, [userData, socket])
-  socket.on('getCurrData', () => {
-    console.log('targeting owner')
-    let position = handleEditorChange()
-    console.log(value)
-    socket.emit('sendSignal', { roomID, value, position })
-  })
-  const handleEditorChange = (value, event) => {
-    if (editorRef.current) {
-      const position = editorRef.current.getPosition()
-      if (position) {
-        const { left, top } =
-          editorRef.current.getScrolledVisiblePosition(position)
-        return { left, top }
-      }
+    if (roomIDParam !== 'singleUser') {
+      socket.on('getResponse', (m) => {
+        setValue(m.value)
+        setLanguage({
+          language: m.language,
+          version: m.version,
+          default: m.value,
+        })
+        setCaretPosition(m.position)
+        if (m.userData) setCaretName(m.userData.user.photo)
+        setCaretVisible(true)
+        setTimeout(() => {
+          setCaretVisible(false)
+        }, 1000)
+      })
+      socket.on('allowPermission', ({ userData, clientSocketID }) => {
+        setRequestList((previousRequestList) => [
+          ...previousRequestList,
+          { userData: userData, clientSocketID: clientSocketID },
+        ])
+      })
     }
-    return { left: 0, top: 0 }
+  }, [roomIDParam, socket])
+  useEffect(() => {}, [userData, socket])
+  if (roomIDParam !== 'singleUser') {
+    socket.on('getCurrData', () => {
+      let position = handleEditorChange()
+
+      socket.emit('sendSignal', {
+        roomID,
+        value,
+        position,
+        language: language.language,
+        version: language.version,
+      })
+    })
   }
   const handleAllowUser = (value, index) => {
     const newItems = requestList.filter((_, i) => i !== index)
@@ -229,15 +363,32 @@ function CodeEditor() {
       clientSocketID: value.clientSocketID,
     })
   }
+  const handleEditorChange = (value, event) => {
+    if (editorRef.current) {
+      const position = editorRef.current.getPosition()
+      if (position) {
+        const { left, top } =
+          editorRef.current.getScrolledVisiblePosition(position)
+        return { left, top }
+      }
+    }
+    return { left: 0, top: 0 }
+  }
+
   return (
     <div className='container'>
+      <h3>{socket.id}</h3>
+      <video style={{ display: 'none' }} ref={userVideo} autoPlay playsInline />
+      {peers.map((peer, index) => (
+        <Video key={index} peer={peer} />
+      ))}
       {waitingState || rejectionState ? (
         waitingState ? (
           <div className='waitingCard'>
             <span className='text'>
               Waiting f
               <>
-                <span class='loader'></span>
+                <span className='loader'></span>
               </>
               r Confirmation...
             </span>
@@ -287,14 +438,14 @@ function CodeEditor() {
                 <div className='options'>
                   <div className='allowBtn button'>
                     <i
-                      class='fa-solid fa-check'
+                      className='fa-solid fa-check'
                       style={{ color: '#46C6C2' }}
                       onClick={() => handleAllowUser(value, idx)}
                     ></i>
                   </div>
                   <div className='rejectBtn button'>
                     <i
-                      class='fa-solid fa-xmark'
+                      className='fa-solid fa-xmark'
                       style={{ color: '#ec5e59' }}
                       onClick={() => handleRejectUser(value, idx)}
                     ></i>
@@ -310,7 +461,7 @@ function CodeEditor() {
                 className='option button toggleGPT'
                 onClick={handleGptToggle}
               >
-                <i class='fa-solid fa-brain'></i>
+                <i className='fa-solid fa-brain'></i>
               </div>
               <div className='option button'></div>
               <div className='option button'></div>
@@ -322,13 +473,11 @@ function CodeEditor() {
               <div className='cardHeading'>
                 <span>ChatGPT</span>
               </div>
-              <div className="result">
-                
-              </div>
+              <div className='result'></div>
               <div className='msgBar'>
                 <input type='text' />
                 <button>
-                  <i class='fa-solid fa-arrow-up'></i>
+                  <i className='fa-solid fa-arrow-up'></i>
                 </button>
               </div>
             </div>
@@ -361,21 +510,25 @@ function CodeEditor() {
                   <div className='button option languages'>
                     <Languages setLanguage={setLanguage}></Languages>
                   </div>
-                  <div
-                    className='button option expand'
-                    onClick={handleCodeboxToggle}
-                    style={
-                      gptToggle
-                        ? {
-                            opacity: 0.5,
-                            cursor: 'not-allowed',
-                            pointerEvents: 'none',
-                          }
-                        : {}
-                    }
-                  >
-                    <span>expand ➔</span>
-                  </div>
+                  {roomIDParam !== 'singleUser' ? (
+                    <div
+                      className='button option expand'
+                      onClick={handleCodeboxToggle}
+                      style={
+                        gptToggle
+                          ? {
+                              opacity: 0.5,
+                              cursor: 'not-allowed',
+                              pointerEvents: 'none',
+                            }
+                          : {}
+                      }
+                    >
+                      <span>expand ➔</span>
+                    </div>
+                  ) : (
+                    <></>
+                  )}
                 </div>
               </div>
               <div
@@ -404,7 +557,7 @@ function CodeEditor() {
               </div>
               <Editor
                 height='90vh'
-                theme='vs-dark'
+                theme='myTheme'
                 language={language.language}
                 onMount={onMount}
                 value={value}
@@ -417,6 +570,8 @@ function CodeEditor() {
                     value,
                     position,
                     userData,
+                    language: language.language,
+                    version: language.version,
                   })
                 }}
               />
@@ -424,17 +579,44 @@ function CodeEditor() {
                 Run code
               </button>
             </div>
-            <div className='output' ref={outputRef}>
-              <div className='cardHeading'>
-                <span>Output</span>
-                <div
-                  className='button toggleOutput'
-                  onClick={handleOutputToggle}
-                >
-                  <span>down &#8595;</span>
+            <div className='bottomOptions'>
+              <div className='output'>
+                <div className='cardHeading'>
+                  <span>Input</span>
+                  {/* <div
+                    className='button toggleOutput'
+                    onClick={handleOutputToggle}
+                  >
+                    <span>down &#8595;</span>
+                  </div> */}
+                </div>
+                <div className='showOutput'>
+                  <textarea
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                    }}
+                    className='inputTextArea'
+                    onChange={(e) => {
+                      setStdInput(e.target.value)
+                    }}
+                  ></textarea>
                 </div>
               </div>
-              <div className='showOutput'></div>
+              <div className='output' ref={outputRef}>
+                <div className='cardHeading'>
+                  <span>Output</span>
+                  {/* <div
+                    className='button toggleOutput'
+                    onClick={handleOutputToggle}
+                  >
+                    <span>down &#8595;</span>
+                  </div> */}
+                </div>
+                <div className='showOutput showOutput1'></div>
+              </div>
             </div>
           </div>
           <div className='participants element'>

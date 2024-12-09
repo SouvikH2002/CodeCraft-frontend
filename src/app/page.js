@@ -2,6 +2,8 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { io } from 'socket.io-client'
+import './css/style.css'
+
 
 export default function Home() {
   const [roomID, setRoomId] = useState('')
@@ -26,8 +28,19 @@ export default function Home() {
 
   return (
     <>
+      <div className="container">
+
       <span>Home page</span>
+      <div className='joinSingleUser'>
+        <button
+          onClick={() => {
+            router.push(`/editor?roomID=singleUser`)
+          }}
+        >Open code editor</button>
+      </div>
       <div className='createRoom' style={{ zIndex: 100 }}>
+        <span>Create or join a group</span>
+        <br />
         <button
           className='createRoomID'
           onClick={() => {
@@ -52,6 +65,7 @@ export default function Home() {
         >
           join
         </button>
+      </div>
       </div>
     </>
   )

@@ -1,15 +1,13 @@
-import { UserButton } from "@clerk/nextjs";
-import { auth } from "@clerk/nextjs/server";
-import Link from "next/link";
-import React from "react";
-import "../app/css/navbar.css"
+import { UserButton } from '@clerk/nextjs'
+import { auth } from '@clerk/nextjs/server'
+import Link from 'next/link'
+import React from 'react'
+import '../app/css/navbar.css'
 const Navbar = () => {
-  const { userId } = auth();
+  const { userId } = auth()
   return (
     <div>
-      <ul
-       className="navSpan"
-      >
+      <ul className='navSpan'>
         <div>
           <Link href='/'>
             <i className='fa-solid fa-house'></i>
@@ -17,7 +15,7 @@ const Navbar = () => {
         </div>
         <div>
           <Link href='/dashboard'>
-            <i class='fa-solid fa-chart-line'></i>{' '}
+            <i className='fa-solid fa-chart-line'></i>{' '}
           </Link>
         </div>
         {/* <div className="flex items-center">
@@ -46,6 +44,6 @@ const Navbar = () => {
       </ul>
     </div>
   )
-};
+}
 
-export default Navbar;
+export default Navbar

@@ -1,13 +1,13 @@
 :root{
- --base-color:#0f0f0f;
+ --base-color:#0f0f0f00;
  --cardholder-color:#181A1B;
- --card-color:#262626;
+ --card-color:#26262677;
  --primary-heading-color:#8965F6;
  --border-color:#565656;
  --button1-color:#2CBB5D;
  --button2-color:#0f0f0f;
  --span-primary-color:rgb(230, 230, 230);
- --card-heading-color:#333333;
+ --card-heading-color:#333333ba;
 }
 span{
  color:var(--span-primary-color);

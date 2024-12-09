@@ -1,19 +1,19 @@
 [
   {
     "language": "javascript",
-    "code": "\nfunction greet(name) {\n\tconsole.log(\"Hello, \" + name + \"!\");\n}\n\ngreet(\"Alex\");\n"
+    "code": "function greet(name) {\n\tconsole.log(\"Hello, \" + name + \"!\");\n}\n\ngreet(\"Alex\");\n"
   },
   {
     "language": "typescript",
-    "code": "\ntype Params = {\n\tname: string;\n}\n\nfunction greet(data: Params) {\n\tconsole.log(\"Hello, \" + data.name + \"!\");\n}\n\ngreet({ name: \"Alex\" });\n"
+    "code": "type Params = {\n\tname: string;\n}\n\nfunction greet(data: Params) {\n\tconsole.log(\"Hello, \" + data.name + \"!\");\n}\n\ngreet({ name: \"Alex\" });\n"
   },
   {
     "language": "python",
-    "code": "\ndef greet(name):\n\tprint(\"Hello, \" + name + \"!\")\n\ngreet(\"Alex\")\n"
+    "code": "def greet(name):\n\tprint(\"Hello, \" + name + \"!\")\n\ngreet(\"Alex\")\n"
   },
   {
     "language": "java",
-    "code": "\npublic class HelloWorld {\n\tpublic static void main(String[] args) {\n\t\tSystem.out.println(\"Hello World\");\n\t}\n}\n"
+    "code": "public class HelloWorld {\n\tpublic static void main(String[] args) {\n\t\tSystem.out.println(\"Hello World\");\n\t}\n}\n"
   },
   {
     "language": "csharp",
@@ -21,6 +21,6 @@
   },
   {
     "language": "php",
-    "code": "<?php\n\n$name = 'Alex';\necho $name;\n"
+    "code": "<?php$name = 'Alex';\necho $name;\n ?>"
   }
 ]
