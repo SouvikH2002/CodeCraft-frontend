@@ -10,7 +10,7 @@ export function FeatureItem({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="flex items-start space-x-4 border-l-4 border-[#CCFF00] pl-6">
+      className="flex items-start space-x-4 border-l-4 border-[#CCFF00] pl-6 font-sans">
       <div className="mt-1">
         <Icon className="h-6 w-6 text-[#CCFF00]" />
       </div>

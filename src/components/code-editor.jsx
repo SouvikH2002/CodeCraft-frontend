@@ -1,12 +1,11 @@
 import { motion } from "framer-motion";
-
 export function CodeEditor() {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
-      className="rounded-lg border bg-[#1E1E1E] text-white"
+      className="rounded-lg border bg-[#1E1E1E] text-white font-mono"
     >
       <div className="flex items-center justify-between border-b border-gray-800 px-4 py-2">
         <div className="flex space-x-2">
@@ -21,7 +20,7 @@ export function CodeEditor() {
       <div className="flex">
         <div className="flex-1 p-4">
           <pre className="text-sm">
-            <code className="font-GeistMono">
+            <code className="font-mono">
               <span className="text-green-400">
                 // Function to sum two numbers
               </span>

@@ -9,7 +9,7 @@ import { FeatureItem } from "@/components/feature-item";
 import "@/app/css/home.css";
 export default function page() {
   return (
-    <div className="min-h-screen bg-[#0A0A16] font-GeistSans">
+    <div className="min-h-screen bg-[#0A0A16] font-sans">
       <SiteHeader />
       <main className="container flex min-h-screen flex-col items-center justify-center space-y-20 py-20 px-20">
         <motion.div

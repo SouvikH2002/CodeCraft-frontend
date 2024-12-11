@@ -2,30 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: "GeistSans";
-  src: url("/fonts/GeistVF.woff") format("woff");
-  font-weight: 100 900;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "GeistMono";
-  src: url("/fonts/GeistMonoVF.woff") format("woff");
-  font-weight: 100 900;
-  font-display: swap;
-}
+/* Remove the hardcoded font-family declarations */
 
 body {
-  font-family: "GeistSans", Arial, sans-serif;
+  font-family: var(--font-geist-sans), Arial, sans-serif;
 }
 
-.font-GeistSans {
-  font-family: "GeistSans", Arial, sans-serif;
-}
-
-.font-GeistMono {
-  font-family: "GeistMono", monospace;
+.code-editor {
+  font-family: var(--font-geist-mono), monospace;
 }
 
 @layer base {
