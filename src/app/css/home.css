@@ -10,6 +10,7 @@ body {
 
 .code-editor {
   font-family: var(--font-geist-mono), monospace;
+  letter-spacing: 0.05em;
 }
 
 @layer base {

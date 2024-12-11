@@ -13,14 +13,14 @@ export function CodeEditor() {
           <div className="h-3 w-3 rounded-full bg-yellow-500" />
           <div className="h-3 w-3 rounded-full bg-green-500" />
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-4">
           <span className="text-xs text-gray-400 font-GeistSans">index.js</span>
         </div>
       </div>
       <div className="flex">
         <div className="flex-1 p-4">
           <pre className="text-sm">
-            <code className="font-mono">
+            <code className="code-editor">
               <span className="text-green-400">
                 // Function to sum two numbers
               </span>
