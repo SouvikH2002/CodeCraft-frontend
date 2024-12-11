@@ -12,7 +12,11 @@
     "@clerk/nextjs": "^5.2.12",
     "@clerk/themes": "^2.1.16",
     "@monaco-editor/react": "^4.6.0",
+    "@radix-ui/react-slot": "^1.1.0",
     "axios": "^1.7.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.468.0",
     "monaco-editor": "^0.50.0",
     "mongodb": "^6.8.0",
     "mongoose": "^8.5.2",
@@ -22,7 +26,9 @@
     "simple-peer": "^9.11.1",
     "socket.io-client": "^4.7.5",
     "styled-components": "^6.1.13",
-    "svix": "^1.28.0"
+    "svix": "^1.28.0",
+    "tailwind-merge": "^2.5.5",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "eslint": "^8",
