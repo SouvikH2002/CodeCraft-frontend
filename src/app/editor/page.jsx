@@ -25,7 +25,7 @@ const Video = (props) => {
       playsInline
       autoPlay
       ref={ref}
-      style={{ height: '40%', width: '50%' }}
+      style={{ display: 'none', height: '40%', width: '50%' }}
     />
   )
 }
@@ -64,6 +64,7 @@ function CodeEditor() {
   const [currJoinedList, setCurrJoinedList] = useState()
   const [waitingState, setWaitingState] = useState(false)
   const [rejectionState, setRejectionState] = useState(false)
+  const [globalStream, setGlobalStream] = useState(null)
   const [peers, setPeers] = useState([])
   const userVideo = useRef()
   const peersRef = useRef([])
@@ -77,8 +78,9 @@ function CodeEditor() {
             if (m.msg === 'accepted') {
               const socketId = m.socketID
               navigator.mediaDevices
-                .getUserMedia({ video: true, audio: true })
+                .getUserMedia({ video: false, audio: true })
                 .then((stream) => {
+                  setGlobalStream(stream)
                   userVideo.current.srcObject = stream
                   if (resp.data) {
                     socket.emit('joinGroup', {
@@ -97,7 +99,11 @@ function CodeEditor() {
                   socket.on('allUsers', (usersInThisRoom) => {
                     const peers = []
                     usersInThisRoom.forEach((userID) => {
-                      const peer = createPeer(userID.socketID, socket.id, stream)
+                      const peer = createPeer(
+                        userID.socketID,
+                        socket.id,
+                        stream
+                      )
                       peersRef.current.push({
                         peerID: userID.socketID,
                         peer,
@@ -211,6 +217,7 @@ function CodeEditor() {
   }, [])
   const editorRef = useRef()
   const codeboxRef = useRef()
+  const toggleControllersRef = useRef()
   const outputRef = useRef()
   const [value, setValue] = useState('')
   const [stdInput, setStdInput] = useState('')
@@ -230,7 +237,46 @@ function CodeEditor() {
   const [caretName, setCaretName] = useState()
   const [caretVisible, setCaretVisible] = useState(false)
   const [requestList, setRequestList] = useState([])
-
+  const [toggleControllers, setToggleControllers] = useState(false)
+  const [toggleMicrophone, setToggleMicrophone] = useState(false)
+  const handleToggleControllers = () => {
+    if (toggleControllers) {
+      toggleControllersRef.current.style.width = '40px'
+    } else {
+      toggleControllersRef.current.style.width = '100px'
+    }
+    setToggleControllers(!toggleControllers)
+  }
+  const handleToggleMicrophone = () => {
+    // if (!toggleMicrophone) {
+    //   globalStream.getTracks().forEach((track) => track.stop())
+    //   setGlobalStream(globalStream)
+    // } else {
+    //   navigator.mediaDevices
+    //     .getUserMedia({ audio: true })
+    //     .then((stream) => {
+    //       setGlobalStream(stream)
+    //       userVideo.current.srcObject = stream
+    //     })
+    //     .catch((error) => {
+    //       console.error('Error accessing audio stream:', error)
+    //     })
+    // }
+    if (globalStream) {
+      console.log("emitting")
+    const audioTrack = globalStream.getAudioTracks()[0]
+    console.log(audioTrack)
+    globalStream.getAudioTracks()[0].enabled= !audioTrack.enabled
+    console.log(globalStream.getAudioTracks()[0])
+    setGlobalStream(globalStream)
+    }
+    socket.emit('sendAudioStatus', {
+      socketID: socket.id,
+      toggleMicrophone,
+      roomID,
+    })
+    setToggleMicrophone(!toggleMicrophone)
+  }
   const handleOutputToggle = () => {
     if (outputToggle) {
       codeboxRef.current.style.height = '88%'
@@ -330,6 +376,11 @@ function CodeEditor() {
         ])
       })
     }
+    socket.on('getAudioStatus', (m) => {
+      console.log('get audio status')
+      console.log(m)
+      setCurrJoinedList(m)
+    })
   }, [roomIDParam, socket])
   useEffect(() => {}, [userData, socket])
   if (roomIDParam !== 'singleUser') {
@@ -377,11 +428,36 @@ function CodeEditor() {
 
   return (
     <div className='container'>
-      <h3>{socket.id}</h3>
-      <video style={{ display: 'none' }} ref={userVideo} autoPlay playsInline />
+      {/* <h3>{socket.id}</h3> */}
+      <video
+        style={{ display: 'none' }}
+        ref={userVideo}
+        autoPlay
+        playsInline
+        muted
+      />
       {peers.map((peer, index) => (
         <Video key={index} peer={peer} />
       ))}
+      <div className='controllers' ref={toggleControllersRef}>
+        <div className='toggleBtn' onClick={handleToggleControllers}>
+          <i
+            className={`fa-solid ${
+              toggleControllers ? 'fa-chevron-right' : 'fa-chevron-left'
+            }`}
+          ></i>
+        </div>
+        <div onClick={handleToggleMicrophone} className='controller'>
+          <i
+            className={`fa-solid ${
+              toggleMicrophone ? 'fa-microphone-slash' : 'fa-microphone'
+            }`}
+          ></i>
+        </div>
+        {/* <div className='controller'>
+          <i className='fa-solid fa-video'></i>
+        </div> */}
+      </div>
       {waitingState || rejectionState ? (
         waitingState ? (
           <div className='waitingCard'>
@@ -629,6 +705,7 @@ function CodeEditor() {
                   owner={currJoinedList.creator}
                   localID={user.userData.user.clerkId}
                   codeboxToggle={codeboxToggle}
+                  audioStatus={user.audioStatus}
                 ></Participant>
               ))}
           </div>
