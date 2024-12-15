@@ -1,33 +1,24 @@
 
 
-.container {
+.editorContainer {
   height: calc(100vh);
   overflow: hidden;
   display: flex;
   background-color: var(--base-color);
   padding: 55px 15px 15px 15px;
   justify-content: space-between;
-  background-image: url('../resources/wp11426770-pc-minimalist-dark-wallpapers.jpg');
-  background-size: cover;
-  background-position: center;
-  background-color: rgba(
-    0,
-    0,
-    0,
-    0.5
-  ); /* Adjust the alpha value for darkness */
-  background-blend-mode: darken;
+  background-color: #0A0A16;
 }
 
 * {
   transition: 0.2s ease-in-out;
 }
-.container .element {
+.editorContainer .element {
   border-radius: 15px;
   margin: 0 0px;
 }
 
-.container .sideBar {
+.editorContainer .sideBar {
   padding: 15px 0;
   height: 100%;
   width: 80px;
@@ -37,9 +28,9 @@
   align-items: center;
   flex-direction: column;
 }
-.container .sideBar .logo,
-.container .sideBar .option,
-.container .sideBar .settings {
+.editorContainer .sideBar .logo,
+.editorContainer .sideBar .option,
+.editorContainer .sideBar .settings {
   height: 40px;
   width: 40px;
   background-color: white;
@@ -49,7 +40,7 @@
   justify-content: center;
   align-items: center;
 }
-.container .editor {
+.editorContainer .editor {
   width: calc(78% - 80px);
   height: 100%;
   /* background-color: var(--cardholder-color); */
@@ -57,7 +48,7 @@
   flex-direction: column;
   justify-content: space-between;
 }
-.container .editor .codebox {
+.editorContainer .editor .codebox {
   overflow: hidden;
   border-radius: 10px;
   height: 70%;
@@ -66,11 +57,11 @@
   border: 1px solid var(--border-color);
   position: relative;
 }
-.container .editor .codebox .cardHeading .options {
+.editorContainer .editor .codebox .cardHeading .options {
   display: flex;
   align-items: center;
 }
-.container .editor .codebox .cardHeading .options .option {
+.editorContainer .editor .codebox .cardHeading .options .option {
   margin-left: 20px;
   border-radius: 10px;
 }
@@ -79,7 +70,7 @@
 
   background-color: var(--button2-color);
 }
-.container .editor .codebox .runButton {
+.editorContainer .editor .codebox .runButton {
   padding: 10px 15px;
   background-color: var(--button1-color);
   color: white;
@@ -88,7 +79,7 @@
   bottom: 15px;
   right: 15px;
 }
-.container .bottomOptions{
+.editorContainer .bottomOptions{
   height: 28%;
   display: flex;
   justify-content: space-between;
@@ -96,23 +87,23 @@
 
 }
 
-.container .editor .output {
+.editorContainer .editor .output {
   overflow: hidden;
   border-radius: 10px;
   width: calc(50% - 7px);
   background-color: var(--card-color);
   border: 1px solid var(--border-color);
 }
-.container .editor .output .showOutput {
+.editorContainer .editor .output .showOutput {
   color: var(--span-primary-color);
   width: 100%;
   height: 100%;
   padding: 10px;
 }
-.container .editor .output .showOutput1{
+.editorContainer .editor .output .showOutput1{
   overflow-y:scroll ;
 }
-.container .gpt {
+.editorContainer .gpt {
   height: 100%;
   overflow: hidden;
   width: 40%;
@@ -123,7 +114,7 @@
   align-items: center;
   border: 1px solid #70685c;
 }
-.container .element .cardHeading {
+.editorContainer .element .cardHeading {
   width: 100%;
   background-color: var(--card-heading-color);
   padding: 15px 15px 15px 25px;
@@ -132,17 +123,17 @@
   align-items: center;
   position: relative;
 }
-.container .toggleOutput {
+.editorContainer .toggleOutput {
   padding: 7px 10px;
   background-color: var(--button2-color);
   border-radius: 10px;
 }
-.container .participants {
+.editorContainer .participants {
   height: 100%;
   width: 20%;
   /* background-color: var(--cardholder-color); */
 }
-.container .participant {
+.editorContainer .participant {
   height: 150px;
   width: 100%;
   border-radius: 15px;
@@ -155,7 +146,7 @@
   flex-direction: column;
   transition: 0.3s ease-in-out;
 }
-.container .participant .controls{
+.editorContainer .participant .controls{
   display: flex;
   opacity: 0;
   color: white;
@@ -166,32 +157,32 @@
   padding: 5px;
   background-color: rgba(255, 255, 255, 0.321);
 }
-.container .participant .controls .control{
+.editorContainer .participant .controls .control{
   padding: 5px 10px;
   border-radius: 50%;
   cursor: pointer;
 }
-.container .participant .controls .control:hover{
+.editorContainer .participant .controls .control:hover{
   background-color: rgba(255, 255, 255, 0.429);
 }
 
-.container .participant:hover .controls{
+.editorContainer .participant:hover .controls{
   opacity: 1;
 }
-.container .participant span {
+.editorContainer .participant span {
   position: absolute;
   bottom: 15px;
   left: 20px;
   font-size: 13px;
 }
-.container .participant .crown {
+.editorContainer .participant .crown {
   position: absolute;
   right: 20px;
   top: 20px;
   transform: rotate(25deg);
   color: #eda116;
 }
-.container .participant .logo {
+.editorContainer .participant .logo {
   height: 60px;
   width: 60px;
   background-color: white;
@@ -226,7 +217,7 @@
   left: 0;
   background-color: white;
 }
-.container .accessCard {
+.editorContainer .accessCard {
   background-color: var(--card-color);
   padding: 25px;
   border-radius: 5px;
@@ -237,17 +228,17 @@
   flex-direction: column;
   z-index: 100;
 }
-.container .accessCard .profile {
+.editorContainer .accessCard .profile {
   display: flex;
   padding: 10px 5px;
   align-items: center;
 }
-.container .accessCard .heading {
+.editorContainer .accessCard .heading {
   font-size: 15px;
   font-weight: bold;
   margin: 10px 0;
 }
-.container .accessCard .profile .dp {
+.editorContainer .accessCard .profile .dp {
   height: 35px;
   width: 35px;
   background-position: center;
@@ -255,15 +246,15 @@
   border-radius: 50%;
   margin-right: 15px;
 }
-.container .accessCard .name {
+.editorContainer .accessCard .name {
   font-size: 13px;
   font-weight: bold;
   color: rgb(206, 206, 206);
 }
-.container .accessCard .options {
+.editorContainer .accessCard .options {
   display: flex;
 }
-.container .accessCard .options i {
+.editorContainer .accessCard .options i {
   padding: 10px;
 }
 .loader {
@@ -311,12 +302,12 @@
     transform: rotate(360deg);
   }
 }
-.container .waitingCard {
+.editorContainer .waitingCard {
   border-radius: 20px;
   margin: auto;
   padding-bottom: 100px;
 }
-.container .waitingCard .userDetails {
+.editorContainer .waitingCard .userDetails {
   display: flex;
   background-color: var(--card-color);
   padding: 20px 35px;
@@ -326,18 +317,18 @@
   left: 50%;
   transform: translateX(-50%);
 }
-.container .waitingCard .userDetails .logo {
+.editorContainer .waitingCard .userDetails .logo {
   height: 30px;
   width: 30px;
   border-radius: 50%;
   background-position: center;
   background-size: cover;
 }
-.container .waitingCard .text {
+.editorContainer .waitingCard .text {
   letter-spacing: 7px;
   font-size: 90px;
 }
-.container .waitingCard .userName h3 {
+.editorContainer .waitingCard .userName h3 {
   font-size: 20px;
   color: rgb(255, 255, 255);
   margin-left: 20px;
@@ -374,7 +365,7 @@
   width: 100%;
   background-color: pink;
 }
-.container .controllers{
+.editorContainer .controllers{
   position: absolute;
   display: flex;
   justify-content: space-between;
@@ -389,7 +380,7 @@
   right: 0px;
   width: 40px;
 }
-.container .controllers .controller{
+.editorContainer .controllers .controller{
   padding: 30px 30px;
   border-radius: 40px;
   scale: 0.8;
@@ -401,30 +392,30 @@
   cursor: pointer;
   
 }
-.container .controllers .controller:hover{
+.editorContainer .controllers .controller:hover{
   background-color: rgba(255, 255, 255, 0.142);
 }
-.container .controllers .toggleBtn{
+.editorContainer .controllers .toggleBtn{
   padding: 20px 10px 20px 15px;
   background-color: rgba(0, 0, 0, 0.551);
 }
-.container .endCall{
+.editorContainer .endCall{
   transform: rotate(137deg);
   margin-left: 7px;
   display: inline-block;
 }
-.container .endcall{
+.editorContainer .endcall{
   background-color: #ff4040;
 }
-.container .endcall span{
+.editorContainer .endcall span{
   font-size: 13px;
   font-weight: bold;
 }
-.container .accessInputKeyboard{
+.editorContainer .accessInputKeyboard{
   position: relative;
   
 }
-.container .accessInputKeyboard .fa-slash{
+.editorContainer .accessInputKeyboard .fa-slash{
   position: absolute;
   left: 29px;
   top: 21px;

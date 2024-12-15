@@ -11,8 +11,10 @@ import { Languages } from './components/Languages'
 import { io } from 'socket.io-client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import toast, { Toaster } from 'react-hot-toast'
+import { SiteHeader } from '@/components/site-header'
 
 import { useAuth } from '@clerk/nextjs'
+
 const Video = (props) => {
   const ref = useRef()
 
@@ -36,11 +38,11 @@ function CodeEditor() {
   const roomIDParam = searchParams.get('roomID')
 
   useEffect(() => {
-    if (document.querySelector('.container .participants')) {
+    if (document.querySelector('.editorContainer .participants')) {
       if (roomIDParam === 'singleUser') {
-        document.querySelector('.container .participants').style.display =
+        document.querySelector('.editorContainer .participants').style.display =
           'none'
-        const editorDiv = document.querySelector('.container .editor')
+        const editorDiv = document.querySelector('.editorContainer .editor')
         if (editorDiv) {
           editorDiv.style.width = 'calc(100% - 95px)'
         } else {
@@ -74,7 +76,10 @@ function CodeEditor() {
   const peersRef = useRef([])
 
   const router = useRouter()
-
+  window.addEventListener('popstate', function () {
+    // Redirect to another page
+    window.location.href = '/'
+  })
   useEffect(() => {
     if (roomIDParam !== 'singleUser') {
       axios
@@ -311,19 +316,18 @@ function CodeEditor() {
   const handleGptToggle = () => {
     if (!gptToggle) {
       if (roomIDParam !== 'singleUser') {
-        document.querySelector('.container .editor').style.width =
+        document.querySelector('.editorContainer .editor').style.width =
           'calc(33% - 20px)'
-      }
-      else{
-        document.querySelector('.container .editor').style.width =
+      } else {
+        document.querySelector('.editorContainer .editor').style.width =
           'calc(52% - 20px)'
       }
     } else {
       if (roomIDParam !== 'singleUser') {
-        document.querySelector('.container .editor').style.width =
+        document.querySelector('.editorContainer .editor').style.width =
           'calc(78% - 80px)'
       } else {
-        document.querySelector('.container .editor').style.width =
+        document.querySelector('.editorContainer .editor').style.width =
           'calc(99% - 80px)'
       }
     }
@@ -332,13 +336,13 @@ function CodeEditor() {
 
   const handleCodeboxToggle = () => {
     if (codeboxToggle) {
-      document.querySelector('.container .editor').style.width =
+      document.querySelector('.editorContainer .editor').style.width =
         'calc(88% - 80px)'
-      document.querySelector('.container .participants').style.width = '10%'
+      document.querySelector('.editorContainer .participants').style.width = '10%'
     } else {
-      document.querySelector('.container .editor').style.width =
+      document.querySelector('.editorContainer .editor').style.width =
         'calc(78% - 80px)'
-      document.querySelector('.container .participants').style.width = '20%'
+      document.querySelector('.editorContainer .participants').style.width = '20%'
     }
     setCodeboxToggle(!codeboxToggle)
   }
@@ -511,7 +515,7 @@ function CodeEditor() {
       globalStream.getTracks().forEach((track) => track.stop())
       console.log('Media stream tracks stopped')
     }
-    router.push('/')
+    window.location.href = '/'
   }
   const handleAccessEditor = () => {
     setToggleAccessEditor(!toggleAccessEditor)
@@ -527,7 +531,9 @@ function CodeEditor() {
   }
   useEffect(() => {}, [enableEditor])
   return (
-    <div className='container'>
+    <div className='editorContainer'>
+      <SiteHeader />
+
       {/* <h3>{socket.id}</h3> */}
       <video
         style={{ display: 'none' }}
@@ -557,65 +563,71 @@ function CodeEditor() {
       ) : (
         <></>
       )}
-      <div className='controllers' ref={toggleControllersRef}>
-        <div className='toggleBtn' onClick={handleToggleControllers}>
-          <i
-            className={`fa-solid ${
-              toggleControllers ? 'fa-chevron-right' : 'fa-chevron-left'
-            }`}
-          ></i>
-        </div>
-        <div
-          onClick={() => {
-            if (disabledAudio) {
-              setShowAudioNotEnabled(true)
-              setTimeout(() => {
-                setShowAudioNotEnabled(false)
-              }, 5000)
-              return
-            }
-            handleToggleMicrophone(!toggleMicrophone)
-          }}
-          className='controller'
-        >
-          <i
-            className={`fa-solid ${
-              !toggleMicrophone ? 'fa-microphone-slash' : 'fa-microphone'
-            }`}
-          ></i>
-          {disabledAudio ? <i className='fa-solid fa-ban'></i> : <></>}
-        </div>
-        {creator ? (
-          <>
-            <div
-              className={`controller accessInputKeyboard ${
-                toggleAccessEditor ? '' : 'enabled'
-              }`}
-              onClick={handleAccessEditor}
-            >
-              <i className='fa-solid fa-keyboard'></i>
-              <i className='fa-solid fa-slash'></i>
+      {roomIDParam === 'singleUser' ? (
+        <></>
+      ) : (
+        <>
+          <div className='controllers' ref={toggleControllersRef}>
+            <div className='toggleBtn' onClick={handleToggleControllers}>
+              <i
+                className={`fa-solid ${
+                  toggleControllers ? 'fa-chevron-right' : 'fa-chevron-left'
+                }`}
+              ></i>
             </div>
             <div
-              className={`controller accessInputVoice ${
-                toggleAccessAudioAll ? '' : 'enabled'
-              }`}
-              onClick={handleAllUsersMike}
+              onClick={() => {
+                if (disabledAudio) {
+                  setShowAudioNotEnabled(true)
+                  setTimeout(() => {
+                    setShowAudioNotEnabled(false)
+                  }, 5000)
+                  return
+                }
+                handleToggleMicrophone(!toggleMicrophone)
+              }}
+              className='controller'
             >
-              <i className='fa-solid fa-users-slash'></i>
+              <i
+                className={`fa-solid ${
+                  !toggleMicrophone ? 'fa-microphone-slash' : 'fa-microphone'
+                }`}
+              ></i>
+              {disabledAudio ? <i className='fa-solid fa-ban'></i> : <></>}
             </div>
-          </>
-        ) : (
-          <></>
-        )}
-        <div className='controller endcall' onClick={handleLeaveCall}>
-          <span>End Call</span>
-          <i className='endCall fa-solid fa-phone'></i>
-        </div>
-        {/* <div className='controller'>
+            {creator ? (
+              <>
+                <div
+                  className={`controller accessInputKeyboard ${
+                    toggleAccessEditor ? '' : 'enabled'
+                  }`}
+                  onClick={handleAccessEditor}
+                >
+                  <i className='fa-solid fa-keyboard'></i>
+                  <i className='fa-solid fa-slash'></i>
+                </div>
+                <div
+                  className={`controller accessInputVoice ${
+                    toggleAccessAudioAll ? '' : 'enabled'
+                  }`}
+                  onClick={handleAllUsersMike}
+                >
+                  <i className='fa-solid fa-users-slash'></i>
+                </div>
+              </>
+            ) : (
+              <></>
+            )}
+            <div className='controller endcall' onClick={handleLeaveCall}>
+              <span>End Call</span>
+              <i className='endCall fa-solid fa-phone'></i>
+            </div>
+            {/* <div className='controller'>
           <i className='fa-solid fa-video'></i>
         </div> */}
-      </div>
+          </div>
+        </>
+      )}
       {waitingState || rejectionState ? (
         waitingState ? (
           <div className='waitingCard'>
