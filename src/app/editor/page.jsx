@@ -3,13 +3,14 @@ import { Participant } from './components/Participant'
 import '../css/editor.css'
 import '../css/colors.css'
 import Peer from 'simple-peer'
-import {motion} from 'framer-motion'
+import { motion } from 'framer-motion'
 import Editor, { loader } from '@monaco-editor/react'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import axios from 'axios'
 import { Languages } from './components/Languages'
 import { io } from 'socket.io-client'
 import { useRouter, useSearchParams } from 'next/navigation'
+import toast, { Toaster } from 'react-hot-toast'
 
 import { useAuth } from '@clerk/nextjs'
 const Video = (props) => {
@@ -261,6 +262,8 @@ function CodeEditor() {
     }
     setToggleControllers(!toggleControllers)
   }
+  const notify = () => toast('Here is your toast.')
+
   const handleToggleMicrophone = (flag) => {
     // if (!toggleMicrophone) {
     //   globalStream.getTracks().forEach((track) => track.stop())
@@ -307,12 +310,22 @@ function CodeEditor() {
 
   const handleGptToggle = () => {
     if (!gptToggle) {
-      document.querySelector('.container .editor').style.width =
-        'calc(33% - 20px)'
+      if (roomIDParam !== 'singleUser') {
+        document.querySelector('.container .editor').style.width =
+          'calc(33% - 20px)'
+      }
+      else{
+        document.querySelector('.container .editor').style.width =
+          'calc(52% - 20px)'
+      }
     } else {
-      document.querySelector('.container .editor').style.width =
-        'calc(78% - 80px)'
-      document.querySelector('.container .participants').style.width = '20%'
+      if (roomIDParam !== 'singleUser') {
+        document.querySelector('.container .editor').style.width =
+          'calc(78% - 80px)'
+      } else {
+        document.querySelector('.container .editor').style.width =
+          'calc(99% - 80px)'
+      }
     }
     setGptToggle(!gptToggle)
   }
@@ -406,6 +419,13 @@ function CodeEditor() {
       m.users.map((user, i) => {
         console.log(user)
         if (user.socketID === socket.id) {
+          if (m.creator !== socket.id) {
+            if (user.accessEditor) {
+              toast.success('Input access has been enabled.')
+            } else {
+              toast.error('Input access has been disabled by the creator.')
+            }
+          }
           setEnableEditor(user.accessEditor)
         }
       })
@@ -413,18 +433,27 @@ function CodeEditor() {
     })
   }, [roomIDParam, socket])
   useEffect(() => {
-    socket.on('getAudioStatusAll', (m) => {
+    const handleAudioStatus = (m) => {
       console.log(m)
       m.newUsers.map((user, i) => {
         console.log(user)
         if (user.socketID === socket.id) {
-          if(user.accessAudio===false)
-          handleToggleMicrophone(false)
+          if (user.accessAudio === false) {
+            toast.error('Voice access has been disabled by the creator.')
+            handleToggleMicrophone(false)
+          } else {
+            toast.success('Voice access has been enabled.')
+          }
           setDisabledAudio(!user.accessAudio)
         }
-        
       })
-    })
+    }
+
+    socket.on('getAudioStatusAll', handleAudioStatus)
+
+    return () => {
+      socket.off('getAudioStatusAll', handleAudioStatus) // Clean up on unmount
+    }
   }, [socket, globalStream])
   useEffect(() => {}, [userData, socket])
   if (roomIDParam !== 'singleUser') {
@@ -512,7 +541,12 @@ function CodeEditor() {
       ))}
       {showAudioNotEnabled ? (
         <>
-          <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{duration:0.5}} className='modal'>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className='modal'
+          >
             <i class='fa-solid fa-triangle-exclamation'></i>
             <span>
               You are unable to speak as the owner has restricted voice
@@ -535,9 +569,9 @@ function CodeEditor() {
           onClick={() => {
             if (disabledAudio) {
               setShowAudioNotEnabled(true)
-                setTimeout(() => {
-                  setShowAudioNotEnabled(false)
-                }, 5000)
+              setTimeout(() => {
+                setShowAudioNotEnabled(false)
+              }, 5000)
               return
             }
             handleToggleMicrophone(!toggleMicrophone)

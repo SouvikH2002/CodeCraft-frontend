@@ -3,6 +3,7 @@ import "./css/home.css";
 import { ClerkProvider, ClerkLoaded, ClerkLoading } from "@clerk/nextjs";
 import Navbar from "@/components/Navbar";
 import { dark } from "@clerk/themes";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -21,30 +22,31 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <ClerkProvider appearance={{ baseTheme: dark }}>
-      <html lang="en">
+      <html lang='en'>
         <head>
           {/* Add Font Awesome CDN link here */}
           <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
-            integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
-            crossOrigin="anonymous"
-            referrerPolicy="no-referrer"
+            rel='stylesheet'
+            href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css'
+            integrity='sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=='
+            crossOrigin='anonymous'
+            referrerPolicy='no-referrer'
           />
         </head>
         <body className={`${geistSans.className} antialiased`}>
           <ClerkLoading>
-            <div className="flex items-center justify-center h-screen text-2xl">
+            <div className='flex items-center justify-center h-screen text-2xl'>
               LOADING...
             </div>
           </ClerkLoading>
           <ClerkLoaded>
-            <div className="">
-              <div className="">{children}</div>
+            <div className=''>
+              <Toaster position='top-right' />
+              <div className=''>{children}</div>
             </div>
           </ClerkLoaded>
         </body>
       </html>
     </ClerkProvider>
-  );
+  )
 }
