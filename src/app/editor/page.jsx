@@ -3,6 +3,7 @@ import { Participant } from './components/Participant'
 import '../css/editor.css'
 import '../css/colors.css'
 import Peer from 'simple-peer'
+import {motion} from 'framer-motion'
 import Editor, { loader } from '@monaco-editor/react'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import axios from 'axios'
@@ -65,9 +66,14 @@ function CodeEditor() {
   const [waitingState, setWaitingState] = useState(false)
   const [rejectionState, setRejectionState] = useState(false)
   const [globalStream, setGlobalStream] = useState(null)
+  const [creator, setCreator] = useState(false)
   const [peers, setPeers] = useState([])
+  const [enableEditor, setEnableEditor] = useState(true)
   const userVideo = useRef()
   const peersRef = useRef([])
+
+  const router = useRouter()
+
   useEffect(() => {
     if (roomIDParam !== 'singleUser') {
       axios
@@ -76,6 +82,10 @@ function CodeEditor() {
           setUserData(resp.data)
           socket.on('feedback', (m) => {
             if (m.msg === 'accepted') {
+              console.log(m)
+              if (socket.id === m.socketID) {
+                setCreator(true)
+              }
               const socketId = m.socketID
               navigator.mediaDevices
                 .getUserMedia({ video: false, audio: true })
@@ -238,16 +248,20 @@ function CodeEditor() {
   const [caretVisible, setCaretVisible] = useState(false)
   const [requestList, setRequestList] = useState([])
   const [toggleControllers, setToggleControllers] = useState(false)
-  const [toggleMicrophone, setToggleMicrophone] = useState(false)
+  const [toggleMicrophone, setToggleMicrophone] = useState(true)
+  const [toggleAccessEditor, setToggleAccessEditor] = useState(true)
+  const [toggleAccessAudioAll, setToggleAccessAudioAll] = useState(true)
+  const [disabledAudio, setDisabledAudio] = useState(false)
+  const [showAudioNotEnabled, setShowAudioNotEnabled] = useState(false)
   const handleToggleControllers = () => {
     if (toggleControllers) {
       toggleControllersRef.current.style.width = '40px'
     } else {
-      toggleControllersRef.current.style.width = '100px'
+      toggleControllersRef.current.style.width = !creator ? '250px' : '450px'
     }
     setToggleControllers(!toggleControllers)
   }
-  const handleToggleMicrophone = () => {
+  const handleToggleMicrophone = (flag) => {
     // if (!toggleMicrophone) {
     //   globalStream.getTracks().forEach((track) => track.stop())
     //   setGlobalStream(globalStream)
@@ -262,20 +276,23 @@ function CodeEditor() {
     //       console.error('Error accessing audio stream:', error)
     //     })
     // }
+
+    console.log('flag from owner', flag)
     if (globalStream) {
-      console.log("emitting")
-    const audioTrack = globalStream.getAudioTracks()[0]
-    console.log(audioTrack)
-    globalStream.getAudioTracks()[0].enabled= !audioTrack.enabled
-    console.log(globalStream.getAudioTracks()[0])
-    setGlobalStream(globalStream)
+      console.log('emitting')
+      const audioTrack = globalStream.getAudioTracks()[0]
+      console.log(audioTrack)
+      globalStream.getAudioTracks()[0].enabled = flag
+      console.log(globalStream.getAudioTracks()[0])
+      setGlobalStream(globalStream)
     }
+    setToggleMicrophone(flag)
+
     socket.emit('sendAudioStatus', {
       socketID: socket.id,
-      toggleMicrophone,
+      toggleMicrophone: flag,
       roomID,
     })
-    setToggleMicrophone(!toggleMicrophone)
   }
   const handleOutputToggle = () => {
     if (outputToggle) {
@@ -379,9 +396,36 @@ function CodeEditor() {
     socket.on('getAudioStatus', (m) => {
       console.log('get audio status')
       console.log(m)
+
       setCurrJoinedList(m)
     })
+
+    socket.on('getEditorAccess', (m) => {
+      console.log(m)
+      console.log('checking for keyboard')
+      m.users.map((user, i) => {
+        console.log(user)
+        if (user.socketID === socket.id) {
+          setEnableEditor(user.accessEditor)
+        }
+      })
+      setCurrJoinedList(m.userList)
+    })
   }, [roomIDParam, socket])
+  useEffect(() => {
+    socket.on('getAudioStatusAll', (m) => {
+      console.log(m)
+      m.newUsers.map((user, i) => {
+        console.log(user)
+        if (user.socketID === socket.id) {
+          if(user.accessAudio===false)
+          handleToggleMicrophone(false)
+          setDisabledAudio(!user.accessAudio)
+        }
+        
+      })
+    })
+  }, [socket, globalStream])
   useEffect(() => {}, [userData, socket])
   if (roomIDParam !== 'singleUser') {
     socket.on('getCurrData', () => {
@@ -425,7 +469,34 @@ function CodeEditor() {
     }
     return { left: 0, top: 0 }
   }
-
+  const handleLeaveCall = () => {
+    const userConfirmed = window.confirm(
+      'Are you sure you want to Leave the call?'
+    )
+    if (!userConfirmed) return
+    if (socket && socket.connected) {
+      socket.disconnect()
+      console.log('Socket disconnected')
+    }
+    if (globalStream) {
+      globalStream.getTracks().forEach((track) => track.stop())
+      console.log('Media stream tracks stopped')
+    }
+    router.push('/')
+  }
+  const handleAccessEditor = () => {
+    setToggleAccessEditor(!toggleAccessEditor)
+    socket.emit('sendEditorAccess', { roomID, socketID: socket.id })
+  }
+  const handleAllUsersMike = () => {
+    setToggleAccessAudioAll(!toggleAccessAudioAll)
+    socket.emit('sendAllAudioMute', {
+      roomID,
+      socketID: socket.id,
+      toggleAccessAudioAll: !toggleAccessAudioAll,
+    })
+  }
+  useEffect(() => {}, [enableEditor])
   return (
     <div className='container'>
       {/* <h3>{socket.id}</h3> */}
@@ -439,6 +510,19 @@ function CodeEditor() {
       {peers.map((peer, index) => (
         <Video key={index} peer={peer} />
       ))}
+      {showAudioNotEnabled ? (
+        <>
+          <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{duration:0.5}} className='modal'>
+            <i class='fa-solid fa-triangle-exclamation'></i>
+            <span>
+              You are unable to speak as the owner has restricted voice
+              permissions.
+            </span>
+          </motion.div>
+        </>
+      ) : (
+        <></>
+      )}
       <div className='controllers' ref={toggleControllersRef}>
         <div className='toggleBtn' onClick={handleToggleControllers}>
           <i
@@ -447,12 +531,52 @@ function CodeEditor() {
             }`}
           ></i>
         </div>
-        <div onClick={handleToggleMicrophone} className='controller'>
+        <div
+          onClick={() => {
+            if (disabledAudio) {
+              setShowAudioNotEnabled(true)
+                setTimeout(() => {
+                  setShowAudioNotEnabled(false)
+                }, 5000)
+              return
+            }
+            handleToggleMicrophone(!toggleMicrophone)
+          }}
+          className='controller'
+        >
           <i
             className={`fa-solid ${
-              toggleMicrophone ? 'fa-microphone-slash' : 'fa-microphone'
+              !toggleMicrophone ? 'fa-microphone-slash' : 'fa-microphone'
             }`}
           ></i>
+          {disabledAudio ? <i className='fa-solid fa-ban'></i> : <></>}
+        </div>
+        {creator ? (
+          <>
+            <div
+              className={`controller accessInputKeyboard ${
+                toggleAccessEditor ? '' : 'enabled'
+              }`}
+              onClick={handleAccessEditor}
+            >
+              <i className='fa-solid fa-keyboard'></i>
+              <i className='fa-solid fa-slash'></i>
+            </div>
+            <div
+              className={`controller accessInputVoice ${
+                toggleAccessAudioAll ? '' : 'enabled'
+              }`}
+              onClick={handleAllUsersMike}
+            >
+              <i className='fa-solid fa-users-slash'></i>
+            </div>
+          </>
+        ) : (
+          <></>
+        )}
+        <div className='controller endcall' onClick={handleLeaveCall}>
+          <span>End Call</span>
+          <i className='endCall fa-solid fa-phone'></i>
         </div>
         {/* <div className='controller'>
           <i className='fa-solid fa-video'></i>
@@ -560,7 +684,7 @@ function CodeEditor() {
           ) : null}
           <div className='editor element'>
             <div
-              className='codebox'
+              className={`codebox ${enableEditor ? `` : `disabledEditor`}`}
               ref={codeboxRef}
               style={{ position: 'relative' }}
             >
@@ -706,6 +830,11 @@ function CodeEditor() {
                   localID={user.userData.user.clerkId}
                   codeboxToggle={codeboxToggle}
                   audioStatus={user.audioStatus}
+                  editorInputStatus={user.accessEditor}
+                  creator={creator}
+                  socket={socket}
+                  socketID={user.socketID}
+                  roomID={roomID}
                 ></Participant>
               ))}
           </div>

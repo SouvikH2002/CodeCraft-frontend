@@ -1,7 +1,35 @@
-import React from 'react'
-export const Participant = ({profilePic,name,owner,localID,codeboxToggle,audioStatus}) => {
+import React, { useState } from 'react'
+export const Participant = ({
+  profilePic,
+  name,
+  owner,
+  localID,
+  codeboxToggle,
+  audioStatus,
+  editorInputStatus,
+  creator,
+  socket,
+  socketID,
+  roomID
+}) => {
   console.log(owner)
   console.log(localID)
+  console.log(editorInputStatus)
+  const [keyboardAccess,setKeyboardAccess]=useState(true);
+  const [audioAccess,setAudioAccess]=useState(true)
+  const sendSingleUserKeyboard=()=>{
+    console.log(roomID,socketID)
+    setKeyboardAccess(!keyboardAccess)
+    socket.emit('sendSingleUserKeyboardAccess',{roomID,socketID,keyboardAccess:!keyboardAccess})
+  }
+  const sendSingleUserAudio=()=>{
+    setAudioAccess(!audioAccess)
+    socket.emit('sendSingleUserAudiodAccess', {
+      roomID,
+      socketID,
+      accessAudio: !audioAccess,
+    })
+  }
   return (
     <div className='participant'>
       {audioStatus === false ? (
@@ -14,6 +42,30 @@ export const Participant = ({profilePic,name,owner,localID,codeboxToggle,audioSt
             right: `20px`,
           }}
         ></i>
+      ) : (
+        <></>
+      )}
+      {creator ? (
+        <>
+          <div className='controls'>
+            <div className='control' onClick={sendSingleUserKeyboard}>
+              <i className='fa-solid fa-keyboard'></i>
+            </div>
+            <div className='control'onClick={sendSingleUserAudio}>
+              <i className='fa-solid fa-microphone'></i>
+            </div>
+          </div>
+        </>
+      ) : (
+        <></>
+      )}
+      {!editorInputStatus ? (
+        <>
+          <div className='profileShow'>
+            <i className='fa-solid fa-keyboard'></i>
+            <i className='fa-solid fa-slash'></i>
+          </div>
+        </>
       ) : (
         <></>
       )}

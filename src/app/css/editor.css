@@ -153,6 +153,30 @@
   position: relative;
   align-items: center;
   flex-direction: column;
+  transition: 0.3s ease-in-out;
+}
+.container .participant .controls{
+  display: flex;
+  opacity: 0;
+  color: white;
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  border-radius: 60px;
+  padding: 5px;
+  background-color: rgba(255, 255, 255, 0.321);
+}
+.container .participant .controls .control{
+  padding: 5px 10px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.container .participant .controls .control:hover{
+  background-color: rgba(255, 255, 255, 0.429);
+}
+
+.container .participant:hover .controls{
+  opacity: 1;
 }
 .container .participant span {
   position: absolute;
@@ -353,7 +377,7 @@
 .container .controllers{
   position: absolute;
   display: flex;
-  justify-content: space-evenly;
+  justify-content: space-between;
   align-items: center;
   color: white;
   z-index: 1000;
@@ -367,10 +391,10 @@
 }
 .container .controllers .controller{
   padding: 30px 30px;
-  border-radius: 50%;
+  border-radius: 40px;
   scale: 0.8;
   height: 20px;
-  width: 20px;
+  
   display: flex;
   justify-content: center;
   align-items: center;
@@ -383,4 +407,68 @@
 .container .controllers .toggleBtn{
   padding: 20px 10px 20px 15px;
   background-color: rgba(0, 0, 0, 0.551);
+}
+.container .endCall{
+  transform: rotate(137deg);
+  margin-left: 7px;
+  display: inline-block;
+}
+.container .endcall{
+  background-color: #ff4040;
+}
+.container .endcall span{
+  font-size: 13px;
+  font-weight: bold;
+}
+.container .accessInputKeyboard{
+  position: relative;
+  
+}
+.container .accessInputKeyboard .fa-slash{
+  position: absolute;
+  left: 29px;
+  top: 21px;
+  filter:drop-shadow(1px 4px black);
+}
+.disabledEditor{
+   pointer-events: none; /* Disable interactions */
+  cursor: not-allowed;  /* Show not-allowed cursor */
+  opacity: 0.5;         /* Optional: Dim the element to indicate disabled state */
+}
+.controllers .enabled{
+  color: red;
+}
+.profileShow{
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  color: #ff3d00;
+}
+.profileShow i{
+  position: absolute;
+}
+.controllers .fa-ban{
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  color: rgb(250, 102, 102);
+  scale: 0.8;
+  filter:drop-shadow(-1px 1px rgb(0, 0, 0));
+
+}
+.modal{
+ position: absolute;
+    bottom: 90px;
+    right: 20px;
+    width: 200px;
+    padding: 7px 12px;
+    border: 1px solid white;
+    border-radius: 5px;
+    font-size: 13px;
+    backdrop-filter: blur(20px);
+}
+.modal i{
+  
+  color:rgb(255, 94, 94);
+  margin-right: 5px;
 }
