@@ -11,7 +11,7 @@ import Link from "next/link";
 import "@/app/css/home.css";
 
 export default function Page() {
-  const { userId } = useAuth(); 
+  const { userId } = useAuth();
 
   return (
     <div className="min-h-screen bg-[#0A0A16] font-sans">
@@ -43,7 +43,7 @@ export default function Page() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.5 }}
           >
-            <Link href={userId ? "/editor" : "/sign-in"}>
+            <Link href={userId ? "/editor?roomID=singleUser" : "/sign-in"}>
               <Button className="bg-[#CCFF00] text-black hover:bg-[#CCFF00]/90">
                 Explore the editor
                 <span className="ml-2">→</span>
