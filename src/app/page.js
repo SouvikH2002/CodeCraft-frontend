@@ -6,12 +6,12 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CodeEditor } from "@/components/code-editor";
 import { FeatureItem } from "@/components/feature-item";
-import { useAuth } from "@clerk/nextjs"; // Import useAuth
+import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import "@/app/css/home.css";
 
 export default function Page() {
-  const { userId } = useAuth(); // Use useAuth hook
+  const { userId } = useAuth(); 
 
   return (
     <div className="min-h-screen bg-[#0A0A16] font-sans">
