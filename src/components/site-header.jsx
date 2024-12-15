@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useClerk } from "@clerk/nextjs";
 
 export function SiteHeader() {
   const { userId } = useAuth();
-
+  const { signOut } = useClerk();
   return (
     <motion.header
       initial={{ y: -100 }}
@@ -55,9 +55,17 @@ export function SiteHeader() {
                 </Link>
               </>
             ) : (
-              <span className="text-sm font-semibold text-white">
-                Welcome, User
-              </span>
+              <>
+                <span className="text-sm font-semibold text-white">
+                  Welcome, User
+                </span>
+                <button
+                  onClick={() => signOut({ redirectUrl: "/" })}
+                  className="text-sm font-semibold text-white transition-colors hover:text-[#CCFF00]"
+                >
+                  Logout
+                </button>
+              </>
             )}
           </div>
         </div>
