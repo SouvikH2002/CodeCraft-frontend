@@ -6,8 +6,13 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CodeEditor } from "@/components/code-editor";
 import { FeatureItem } from "@/components/feature-item";
+import { useAuth } from "@clerk/nextjs"; // Import useAuth
+import Link from "next/link";
 import "@/app/css/home.css";
-export default function page() {
+
+export default function Page() {
+  const { userId } = useAuth(); // Use useAuth hook
+
   return (
     <div className="min-h-screen bg-[#0A0A16] font-sans">
       <SiteHeader />
@@ -38,10 +43,12 @@ export default function page() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.5 }}
           >
-            <Button className="bg-[#CCFF00] text-black hover:bg-[#CCFF00]/90">
-              Explore the editor
-              <span className="ml-2">→</span>
-            </Button>
+            <Link href={userId ? "/editor" : "/sign-in"}>
+              <Button className="bg-[#CCFF00] text-black hover:bg-[#CCFF00]/90">
+                Explore the editor
+                <span className="ml-2">→</span>
+              </Button>
+            </Link>
           </motion.div>
         </motion.div>
         <div className="grid gap-12 lg:grid-cols-2">
