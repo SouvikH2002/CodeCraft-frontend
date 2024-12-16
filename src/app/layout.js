@@ -41,7 +41,17 @@ export default function RootLayout({ children }) {
           </ClerkLoading>
           <ClerkLoaded>
             <div className=''>
-              <Toaster position='top-right' />
+              <Toaster
+                position='top-right'
+                toastOptions={{
+                  className: '',
+                  style: {
+                    borderRadius: '10px',
+                    background: '#333',
+                    color: '#fff',
+                  },
+                }}
+              />
               <div className=''>{children}</div>
             </div>
           </ClerkLoaded>

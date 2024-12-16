@@ -45,13 +45,13 @@ export const Participant = ({
       ) : (
         <></>
       )}
-      {creator ? (
+      {creator && owner.clrkID !== localID ? (
         <>
           <div className='controls'>
             <div className='control' onClick={sendSingleUserKeyboard}>
               <i className='fa-solid fa-keyboard'></i>
             </div>
-            <div className='control'onClick={sendSingleUserAudio}>
+            <div className='control' onClick={sendSingleUserAudio}>
               <i className='fa-solid fa-microphone'></i>
             </div>
           </div>

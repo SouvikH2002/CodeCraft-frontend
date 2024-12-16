@@ -267,7 +267,6 @@ function CodeEditor() {
     }
     setToggleControllers(!toggleControllers)
   }
-  const notify = () => toast('Here is your toast.')
 
   const handleToggleMicrophone = (flag) => {
     // if (!toggleMicrophone) {
@@ -338,11 +337,13 @@ function CodeEditor() {
     if (codeboxToggle) {
       document.querySelector('.editorContainer .editor').style.width =
         'calc(88% - 80px)'
-      document.querySelector('.editorContainer .participants').style.width = '10%'
+      document.querySelector('.editorContainer .participants').style.width =
+        '10%'
     } else {
       document.querySelector('.editorContainer .editor').style.width =
         'calc(78% - 80px)'
-      document.querySelector('.editorContainer .participants').style.width = '20%'
+      document.querySelector('.editorContainer .participants').style.width =
+        '20%'
     }
     setCodeboxToggle(!codeboxToggle)
   }
@@ -545,24 +546,7 @@ function CodeEditor() {
       {peers.map((peer, index) => (
         <Video key={index} peer={peer} />
       ))}
-      {showAudioNotEnabled ? (
-        <>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className='modal'
-          >
-            <i class='fa-solid fa-triangle-exclamation'></i>
-            <span>
-              You are unable to speak as the owner has restricted voice
-              permissions.
-            </span>
-          </motion.div>
-        </>
-      ) : (
-        <></>
-      )}
+     
       {roomIDParam === 'singleUser' ? (
         <></>
       ) : (
@@ -578,10 +562,8 @@ function CodeEditor() {
             <div
               onClick={() => {
                 if (disabledAudio) {
-                  setShowAudioNotEnabled(true)
-                  setTimeout(() => {
-                    setShowAudioNotEnabled(false)
-                  }, 5000)
+                  toast.error('  You are unable to speak as the owner has restricted voice permissions.')
+                  
                   return
                 }
                 handleToggleMicrophone(!toggleMicrophone)
