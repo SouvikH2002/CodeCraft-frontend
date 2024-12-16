@@ -540,31 +540,44 @@ function CodeEditor() {
     setShowMeetingToast(true);
     toast(
       (t) => (
-        <div>
+        <div style={{ padding: '10px', color: '#fff', textAlign: 'center' }}>
           <input
             type="text"
             placeholder="Enter the code"
             style={{
-              marginBottom: "10px",
-              padding: "5px",
-              width: "100%",
-              color: "black",
+              marginBottom: '10px',
+              padding: '10px',
+              width: '100%',
+              borderRadius: '5px',
+              border: '1px solid #ccc',
+              color: '#000',
             }}
           />
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <button
               onClick={() => toast.dismiss(t.id)}
               style={{
-                marginRight: "10px",
-                backgroundColor: "#0A0A16",
-                color: "#CCFF00",
+                marginRight: '10px',
+                backgroundColor: '#46C6C2',
+                color: '#fff',
+                padding: '10px 20px',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
               }}
             >
               New Meeting
             </button>
             <button
               onClick={() => toast.dismiss(t.id)}
-              style={{ backgroundColor: "#0A0A16", color: "#CCFF00" }}
+              style={{
+                backgroundColor: '#ec5e59',
+                color: '#fff',
+                padding: '10px 20px',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+              }}
             >
               Join
             </button>
@@ -573,10 +586,11 @@ function CodeEditor() {
       ),
       {
         duration: 5000,
-        position: "top-center",
+        position: 'top-center',
         style: {
-          background: "#0A0A16",
-          borderRadius: "10px",
+          background: '#0A0A16',
+          borderRadius: '10px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
         },
       }
     );
