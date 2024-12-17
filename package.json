@@ -30,7 +30,8 @@
     "styled-components": "^6.1.13",
     "svix": "^1.28.0",
     "tailwind-merge": "^2.5.5",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "uniqid": "^5.4.0"
   },
   "devDependencies": {
     "eslint": "^8",

@@ -12,6 +12,7 @@ import { io } from 'socket.io-client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import toast, { Toaster } from 'react-hot-toast'
 import { SiteHeader } from '@/components/site-header'
+import uniqid from 'uniqid'
 
 import { useAuth } from '@clerk/nextjs'
 
@@ -259,6 +260,8 @@ function CodeEditor() {
   const [toggleAccessAudioAll, setToggleAccessAudioAll] = useState(true)
   const [disabledAudio, setDisabledAudio] = useState(false)
   const [showAudioNotEnabled, setShowAudioNotEnabled] = useState(false)
+  const [showMeetingToast, setShowMeetingToast] = useState(false)
+
   const handleToggleControllers = () => {
     if (toggleControllers) {
       toggleControllersRef.current.style.width = '40px'
@@ -267,6 +270,7 @@ function CodeEditor() {
     }
     setToggleControllers(!toggleControllers)
   }
+  const notify = () => toast('Here is your toast.')
 
   const handleToggleMicrophone = (flag) => {
     // if (!toggleMicrophone) {
@@ -530,9 +534,153 @@ function CodeEditor() {
       toggleAccessAudioAll: !toggleAccessAudioAll,
     })
   }
+
+  const inputRoomIDRef = useRef(null)
+  const handleShowMeetingToast = () => {
+    toast(
+      (t) => (
+        <div
+          style={{
+            color: '#fff',
+          }}
+        >
+          <div style={{ position: 'absolute', right: '20px', top: '12px' }}>
+            <i
+              className='fa-solid fa-xmark'
+              style={{ color: '#ec5e59', scale: '1.5', cursor: 'pointer' }}
+              onClick={() => toast.dismiss(t.id)}
+            ></i>
+          </div>
+          <h2
+            style={{
+              fontSize: '25px',
+              fontWeight: '800',
+              color: 'rgb(204, 255, 0)',
+            }}
+          >
+            Multi-User Code Editor
+          </h2>
+          <span
+            style={{
+              margin: '10px 0 20px 0',
+              display: 'inline-block',
+              fontSize: '16px',
+              letterSpacing: '1px',
+            }}
+          >
+            Join the voice call and collaborate effortlessly through the
+            interactive code editor
+          </span>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <button
+              onClick={() => {
+                const createNewRoomID = uniqid()
+                window.location.href = `/editor?roomID=${createNewRoomID}`
+
+                toast.dismiss(t.id)
+              }}
+              style={{
+                height: '50px',
+                marginRight: '10px',
+                backgroundColor: '#46C6C2',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                width: '25%',
+              }}
+            >
+              New Meeting
+            </button>
+            <input
+              type='text'
+              placeholder='Enter the code'
+              style={{
+                height: '50px',
+                marginBottom: '10px',
+                width: '60%',
+                borderRadius: '5px',
+                border: '1px solid #ccc',
+                color: '#000',
+                paddingLeft: '20px',
+                fontSize: '17px',
+              }}
+              ref={inputRoomIDRef}
+            />
+            <button
+              onClick={() => {
+                if (inputRoomIDRef.current.value.trim() === '') {
+                  toast.error('Room ID cannot be empty')
+                  return
+                }
+                window.location.href = `/editor?roomID=${inputRoomIDRef.current.value}`
+                toast.dismiss(t.id)
+              }}
+              style={{
+                height: '50px',
+                backgroundColor: '#ec5e59',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                width: '15%',
+                marginLeft: '10px',
+              }}
+            >
+              Join
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: Infinity,
+        position: 'top-center',
+        style: {
+          background: '#0A0A16',
+          borderRadius: '10px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+          width: '600px',
+          maxWidth: 'none', // This overrides the default max width
+        },
+      }
+    )
+  }
   useEffect(() => {}, [enableEditor])
   return (
     <div className='editorContainer'>
+      {roomIDParam!=='singleUser'?<>
+      <div
+        style={{
+          zIndex: 9999,
+          color: 'rgb(214, 214, 214)',
+          position: 'absolute',
+          left: '186px',
+          top: '12px',
+          border: '1px solid rgba(255, 255, 255, 0.27)',
+          padding: '4px 15px',
+          fontWeight: 500,
+          borderRadius: '5px',
+          letterSpacing: '1px',
+        }}
+      >
+        Room ID: {roomIDParam}
+        <i onClick={()=>{
+            navigator.clipboard
+              .writeText(roomIDParam)
+              .then(() => {
+                toast.success(
+                  'The Room ID has been successfully copied to the clipboard.'
+                )
+              })
+              .catch(() => {
+                toast.error(
+                  'An error occurred while copying the Room ID. Please try again.'
+                )
+              })
+
+        }} style={{ marginLeft: '10px', cursor:'pointer' }} className='fa-solid fa-copy'></i>
+      </div>
+      </>:<></>}
       <SiteHeader />
 
       {/* <h3>{socket.id}</h3> */}
@@ -546,7 +694,24 @@ function CodeEditor() {
       {peers.map((peer, index) => (
         <Video key={index} peer={peer} />
       ))}
-     
+      {showAudioNotEnabled ? (
+        <>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className='modal'
+          >
+            <i class='fa-solid fa-triangle-exclamation'></i>
+            <span>
+              You are unable to speak as the owner has restricted voice
+              permissions.
+            </span>
+          </motion.div>
+        </>
+      ) : (
+        <></>
+      )}
       {roomIDParam === 'singleUser' ? (
         <></>
       ) : (
@@ -562,8 +727,10 @@ function CodeEditor() {
             <div
               onClick={() => {
                 if (disabledAudio) {
-                  toast.error('  You are unable to speak as the owner has restricted voice permissions.')
-                  
+                  setShowAudioNotEnabled(true)
+                  setTimeout(() => {
+                    setShowAudioNotEnabled(false)
+                  }, 5000)
                   return
                 }
                 handleToggleMicrophone(!toggleMicrophone)
@@ -691,8 +858,9 @@ function CodeEditor() {
               >
                 <i className='fa-solid fa-brain'></i>
               </div>
-              <div className='option button'></div>
-              <div className='option button'></div>
+              <div className='option button' onClick={handleShowMeetingToast}>
+                <i className='fa-solid fa-calendar-plus'></i>
+              </div>
             </div>
             <div className='settings button'></div>
           </div>
