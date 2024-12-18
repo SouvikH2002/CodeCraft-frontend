@@ -73,6 +73,7 @@ function CodeEditor() {
   const [creator, setCreator] = useState(false)
   const [peers, setPeers] = useState([])
   const [enableEditor, setEnableEditor] = useState(true)
+  const [trigger, setTrigger] = useState(0)
   const userVideo = useRef()
   const peersRef = useRef([])
 
@@ -258,6 +259,7 @@ function CodeEditor() {
   const [toggleMicrophone, setToggleMicrophone] = useState(true)
   const [toggleAccessEditor, setToggleAccessEditor] = useState(true)
   const [toggleAccessAudioAll, setToggleAccessAudioAll] = useState(true)
+  const [audioPermissionStatus, setAudioPermissionStatus] = useState([])
   const [disabledAudio, setDisabledAudio] = useState(false)
   const [showAudioNotEnabled, setShowAudioNotEnabled] = useState(false)
   const [showMeetingToast, setShowMeetingToast] = useState(false)
@@ -440,6 +442,26 @@ function CodeEditor() {
       })
       setCurrJoinedList(m.userList)
     })
+    socket.on('singleUserKeyboardFull', (m) => {
+      console.log(m)
+      if (m.msg === 'keyboardFull') {
+        setToggleAccessEditor(false)
+      } else {
+        setToggleAccessEditor(true)
+      }
+    })
+    socket.on('singleUserAudioFull', (m) => {
+      if (m.msg === 'audioFull') {
+        setToggleAccessAudioAll(false)
+      } else {
+        setToggleAccessAudioAll(true)
+      }
+    })
+    socket.on('getAudioPermissionStatus', (m) => {
+      console.log(m)
+      setTrigger(trigger+1)
+      setCurrJoinedList(m.newUsers)
+    })
   }, [roomIDParam, socket])
   useEffect(() => {
     const handleAudioStatus = (m) => {
@@ -524,7 +546,11 @@ function CodeEditor() {
   }
   const handleAccessEditor = () => {
     setToggleAccessEditor(!toggleAccessEditor)
-    socket.emit('sendEditorAccess', { roomID, socketID: socket.id })
+    socket.emit('sendEditorAccess', {
+      roomID,
+      socketID: socket.id,
+      toggleAccessEditor: !toggleAccessEditor,
+    })
   }
   const handleAllUsersMike = () => {
     setToggleAccessAudioAll(!toggleAccessAudioAll)
@@ -648,39 +674,46 @@ function CodeEditor() {
   useEffect(() => {}, [enableEditor])
   return (
     <div className='editorContainer'>
-      {roomIDParam!=='singleUser'?<>
-      <div
-        style={{
-          zIndex: 9999,
-          color: 'rgb(214, 214, 214)',
-          position: 'absolute',
-          left: '186px',
-          top: '12px',
-          border: '1px solid rgba(255, 255, 255, 0.27)',
-          padding: '4px 15px',
-          fontWeight: 500,
-          borderRadius: '5px',
-          letterSpacing: '1px',
-        }}
-      >
-        Room ID: {roomIDParam}
-        <i onClick={()=>{
-            navigator.clipboard
-              .writeText(roomIDParam)
-              .then(() => {
-                toast.success(
-                  'The Room ID has been successfully copied to the clipboard.'
-                )
-              })
-              .catch(() => {
-                toast.error(
-                  'An error occurred while copying the Room ID. Please try again.'
-                )
-              })
-
-        }} style={{ marginLeft: '10px', cursor:'pointer' }} className='fa-solid fa-copy'></i>
-      </div>
-      </>:<></>}
+      {roomIDParam !== 'singleUser' ? (
+        <>
+          <div
+            style={{
+              zIndex: 9999,
+              color: 'rgb(214, 214, 214)',
+              position: 'absolute',
+              left: '186px',
+              top: '12px',
+              border: '1px solid rgba(255, 255, 255, 0.27)',
+              padding: '4px 15px',
+              fontWeight: 500,
+              borderRadius: '5px',
+              letterSpacing: '1px',
+            }}
+          >
+            Room ID: {roomIDParam}
+            <i
+              onClick={() => {
+                navigator.clipboard
+                  .writeText(roomIDParam)
+                  .then(() => {
+                    toast.success(
+                      'The Room ID has been successfully copied to the clipboard.'
+                    )
+                  })
+                  .catch(() => {
+                    toast.error(
+                      'An error occurred while copying the Room ID. Please try again.'
+                    )
+                  })
+              }}
+              style={{ marginLeft: '10px', cursor: 'pointer' }}
+              className='fa-solid fa-copy'
+            ></i>
+          </div>
+        </>
+      ) : (
+        <></>
+      )}
       <SiteHeader />
 
       {/* <h3>{socket.id}</h3> */}
@@ -1031,6 +1064,8 @@ function CodeEditor() {
                   socket={socket}
                   socketID={user.socketID}
                   roomID={roomID}
+                  accessAudio={user.accessAudio}
+                  trigger={trigger}
                 ></Participant>
               ))}
           </div>

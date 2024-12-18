@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 export const Participant = ({
   profilePic,
   name,
@@ -10,19 +10,25 @@ export const Participant = ({
   creator,
   socket,
   socketID,
-  roomID
+  roomID,
+  accessAudio,
+  trigger
 }) => {
   console.log(owner)
   console.log(localID)
   console.log(editorInputStatus)
-  const [keyboardAccess,setKeyboardAccess]=useState(true);
-  const [audioAccess,setAudioAccess]=useState(true)
-  const sendSingleUserKeyboard=()=>{
-    console.log(roomID,socketID)
+  const [keyboardAccess, setKeyboardAccess] = useState(true)
+  const [audioAccess, setAudioAccess] = useState(true)
+  const sendSingleUserKeyboard = () => {
+    console.log(roomID, socketID)
     setKeyboardAccess(!keyboardAccess)
-    socket.emit('sendSingleUserKeyboardAccess',{roomID,socketID,keyboardAccess:!keyboardAccess})
+    socket.emit('sendSingleUserKeyboardAccess', {
+      roomID,
+      socketID,
+      keyboardAccess: !keyboardAccess,
+    })
   }
-  const sendSingleUserAudio=()=>{
+  const sendSingleUserAudio = () => {
     setAudioAccess(!audioAccess)
     socket.emit('sendSingleUserAudiodAccess', {
       roomID,
@@ -30,6 +36,13 @@ export const Participant = ({
       accessAudio: !audioAccess,
     })
   }
+  useEffect(() => {
+    setKeyboardAccess(editorInputStatus)
+  }, [editorInputStatus])
+  useEffect(() => {
+    console.log('check for access')
+    setAudioAccess(accessAudio)
+  }, [accessAudio, trigger])
   return (
     <div className='participant'>
       {audioStatus === false ? (
@@ -49,9 +62,16 @@ export const Participant = ({
         <>
           <div className='controls'>
             <div className='control' onClick={sendSingleUserKeyboard}>
-              <i className='fa-solid fa-keyboard'></i>
+              <i
+                className='fa-solid fa-keyboard'
+                style={{ color: !keyboardAccess ? 'red' : '' }}
+              ></i>
             </div>
-            <div className='control' onClick={sendSingleUserAudio}>
+            <div
+              className='control'
+              onClick={sendSingleUserAudio}
+              style={{ color: !audioAccess ? 'red' : '' }}
+            >
               <i className='fa-solid fa-microphone'></i>
             </div>
           </div>
