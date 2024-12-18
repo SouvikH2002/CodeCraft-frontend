@@ -727,24 +727,7 @@ function CodeEditor() {
       {peers.map((peer, index) => (
         <Video key={index} peer={peer} />
       ))}
-      {showAudioNotEnabled ? (
-        <>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className='modal'
-          >
-            <i class='fa-solid fa-triangle-exclamation'></i>
-            <span>
-              You are unable to speak as the owner has restricted voice
-              permissions.
-            </span>
-          </motion.div>
-        </>
-      ) : (
-        <></>
-      )}
+      
       {roomIDParam === 'singleUser' ? (
         <></>
       ) : (
@@ -760,11 +743,8 @@ function CodeEditor() {
             <div
               onClick={() => {
                 if (disabledAudio) {
-                  setShowAudioNotEnabled(true)
-                  setTimeout(() => {
-                    setShowAudioNotEnabled(false)
-                  }, 5000)
-                  return
+                  toast.error("You are unable to speak as the owner has restricted voice permissions.")
+              return
                 }
                 handleToggleMicrophone(!toggleMicrophone)
               }}
@@ -888,10 +868,15 @@ function CodeEditor() {
               <div
                 className='option button toggleGPT'
                 onClick={handleGptToggle}
+                style={{ cursor: "pointer" }}
               >
                 <i className='fa-solid fa-brain'></i>
               </div>
-              <div className='option button' onClick={handleShowMeetingToast}>
+              <div
+                className='option button'
+                onClick={handleShowMeetingToast}
+                style={{ cursor: "pointer" }}
+              >
                 <i className='fa-solid fa-calendar-plus'></i>
               </div>
             </div>
