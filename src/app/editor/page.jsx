@@ -13,6 +13,10 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import toast, { Toaster } from 'react-hot-toast'
 import { SiteHeader } from '@/components/site-header'
 import uniqid from 'uniqid'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import TextareaAutosize from 'react-textarea-autosize'
+import { useChat } from 'ai/react'
 
 import { useAuth } from '@clerk/nextjs'
 
@@ -263,6 +267,10 @@ function CodeEditor() {
   const [disabledAudio, setDisabledAudio] = useState(false)
   const [showAudioNotEnabled, setShowAudioNotEnabled] = useState(false)
   const [showMeetingToast, setShowMeetingToast] = useState(false)
+
+  const { messages, input, handleInputChange, handleSubmit } = useChat({
+    api: '/api/gemini'
+  })
 
   const handleToggleControllers = () => {
     if (toggleControllers) {
@@ -885,15 +893,55 @@ function CodeEditor() {
           {gptToggle ? (
             <div className='gpt element'>
               <div className='cardHeading'>
-                <span>ChatGPT</span>
+                <span>AI Assistant</span>
               </div>
-              <div className='result'></div>
-              <div className='msgBar'>
-                <input type='text' />
-                <button>
+              <div className='result'>
+                {messages.map((message, i) => (
+                  <div key={i} className={`message ${message.role}`}>
+                    <div className='message-content'>
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          code({node, inline, className, children, ...props}) {
+                            const match = /language-(\w+)/.exec(className || '')
+                            return !inline ? (
+                              <pre className={className}>
+                                <code {...props} className={match ? `language-${match[1]}` : ''}>
+                                  {children}
+                                </code>
+                              </pre>
+                            ) : (
+                              <code {...props} className={className}>
+                                {children}
+                              </code>
+                            )
+                          }
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <form onSubmit={handleSubmit} className='msgBar'>
+                <TextareaAutosize
+                  value={input}
+                  onChange={handleInputChange}
+                  placeholder="Ask me anything..."
+                  maxRows={5}
+                  className="chat-input"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      handleSubmit(e)
+                    }
+                  }}
+                />
+                <button type="submit">
                   <i className='fa-solid fa-arrow-up'></i>
                 </button>
-              </div>
+              </form>
             </div>
           ) : null}
           <div className='editor element'>
