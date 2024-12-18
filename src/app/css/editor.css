@@ -497,6 +497,14 @@
   align-self: flex-start;
 }
 
+.gpt .message.assistant .message-content {
+  color: #000000;
+}
+
+.gpt .message.user .message-content {
+  color: #e0e0e0;
+}
+
 .gpt .message-content {
   color: #e0e0e0;
   line-height: 1.6;
