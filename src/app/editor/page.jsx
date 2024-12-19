@@ -735,7 +735,7 @@ function CodeEditor() {
       {peers.map((peer, index) => (
         <Video key={index} peer={peer} />
       ))}
-      
+
       {roomIDParam === 'singleUser' ? (
         <></>
       ) : (
@@ -751,8 +751,10 @@ function CodeEditor() {
             <div
               onClick={() => {
                 if (disabledAudio) {
-                  toast.error("You are unable to speak as the owner has restricted voice permissions.")
-              return
+                  toast.error(
+                    'You are unable to speak as the owner has restricted voice permissions.'
+                  )
+                  return
                 }
                 handleToggleMicrophone(!toggleMicrophone)
               }}
@@ -819,7 +821,47 @@ function CodeEditor() {
             </div>
           </div>
         ) : (
-          <span>rejected :) like my life</span>
+          <>
+            <div
+              style={{
+                height: '80vh',
+                width: '100vw',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                flexDirection: 'column',
+                color:"white"
+              }}
+            >
+              <div
+                style={{
+                  height: '225px',
+                  width: '300px',
+                  backgroundImage: 'url(../../error.png)',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundSize: 'contain',
+                }}
+              ></div>
+              <h2 style={{fontSize:"30px"}}>You can't join this meeting</h2>
+              <span>Admin in the meeting denied your request</span>
+              <div
+                style={{
+                  backgroundColor: '#2CBB5D',
+                  padding: '15px 25px',
+                  color: 'white',
+                  marginTop:'20px',
+                  borderRadius:'10px',
+                  cursor:'pointer'
+                }}
+                onClick={() => {
+                  window.location.href = '/editor?roomID=singleUser'
+                }}
+              >
+                <span>Go to Editor</span>
+              </div>
+            </div>
+          </>
         )
       ) : (
         <>
@@ -876,14 +918,14 @@ function CodeEditor() {
               <div
                 className='option button toggleGPT'
                 onClick={handleGptToggle}
-                style={{ cursor: "pointer" }}
+                style={{ cursor: 'pointer' }}
               >
                 <i className='fa-solid fa-brain'></i>
               </div>
               <div
                 className='option button'
                 onClick={handleShowMeetingToast}
-                style={{ cursor: "pointer" }}
+                style={{ cursor: 'pointer' }}
               >
                 <i className='fa-solid fa-calendar-plus'></i>
               </div>
@@ -899,14 +941,25 @@ function CodeEditor() {
                 {messages.map((message, i) => (
                   <div key={i} className={`message ${message.role}`}>
                     <div className='message-content'>
-                      <ReactMarkdown 
+                      <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{
-                          code({node, inline, className, children, ...props}) {
+                          code({
+                            node,
+                            inline,
+                            className,
+                            children,
+                            ...props
+                          }) {
                             const match = /language-(\w+)/.exec(className || '')
                             return !inline ? (
                               <pre className={className}>
-                                <code {...props} className={match ? `language-${match[1]}` : ''}>
+                                <code
+                                  {...props}
+                                  className={
+                                    match ? `language-${match[1]}` : ''
+                                  }
+                                >
                                   {children}
                                 </code>
                               </pre>
@@ -915,7 +968,7 @@ function CodeEditor() {
                                 {children}
                               </code>
                             )
-                          }
+                          },
                         }}
                       >
                         {message.content}
@@ -928,9 +981,9 @@ function CodeEditor() {
                 <TextareaAutosize
                   value={input}
                   onChange={handleInputChange}
-                  placeholder="Ask me anything..."
+                  placeholder='Ask me anything...'
                   maxRows={5}
-                  className="chat-input"
+                  className='chat-input'
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault()
@@ -938,7 +991,7 @@ function CodeEditor() {
                     }
                   }}
                 />
-                <button type="submit">
+                <button type='submit'>
                   <i className='fa-solid fa-arrow-up'></i>
                 </button>
               </form>
