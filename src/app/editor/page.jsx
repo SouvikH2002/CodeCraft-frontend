@@ -830,7 +830,7 @@ function CodeEditor() {
                 justifyContent: 'center',
                 alignItems: 'center',
                 flexDirection: 'column',
-                color:"white"
+                color: 'white',
               }}
             >
               <div
@@ -843,16 +843,18 @@ function CodeEditor() {
                   backgroundSize: 'contain',
                 }}
               ></div>
-              <h2 style={{fontSize:"30px"}}>You can't join this meeting</h2>
+              <h2 style={{ fontSize: '30px' }}>
+                You can&apos;t join this meeting
+              </h2>
               <span>Admin in the meeting denied your request</span>
               <div
                 style={{
                   backgroundColor: '#2CBB5D',
                   padding: '15px 25px',
                   color: 'white',
-                  marginTop:'20px',
-                  borderRadius:'10px',
-                  cursor:'pointer'
+                  marginTop: '20px',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
                 }}
                 onClick={() => {
                   window.location.href = '/editor?roomID=singleUser'
